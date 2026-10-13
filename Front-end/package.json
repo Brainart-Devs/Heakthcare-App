@@ -9,6 +9,7 @@
     "@react-native-picker/picker": "2.11.4",
     "@types/lodash": "^4.17.25",
     "expo": "~57.0.26",
+    "expo-audio": "^57.0.5",
     "expo-av": "^16.0.8",
     "expo-camera": "~57.0.6",
     "expo-constants": "~57.0.20",
@@ -36,6 +37,7 @@
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
     "react-native-web": "~0.21.0",
+    "react-native-webview": "^14.0.1",
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {

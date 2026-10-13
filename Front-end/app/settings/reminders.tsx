@@ -4,14 +4,163 @@ import { Text, Header, Card, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { WebView } from 'react-native-webview';
 
-const SOUND_FILES: Record<string, any> = {
-  'Gentle Chime': require('@/assets/sounds/chime.wav'),
-  'Calm Flute': require('@/assets/sounds/flute.wav'),
-  'High Bell': require('@/assets/sounds/bell.wav'),
-  'Classic Ring': require('@/assets/sounds/ring.wav'),
-};
+const AUDIO_ENGINE_HTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<script>
+  var ctx = null;
+  function getContext() {
+    if (!ctx) {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        ctx = new AudioCtx();
+      }
+    }
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    return ctx;
+  }
+
+  // Pre-unlock audio
+  document.addEventListener('touchstart', function() { getContext(); }, false);
+  document.addEventListener('click', function() { getContext(); }, false);
+
+  window.playTone = function(toneName) {
+    try {
+      var audioCtx = getContext();
+      if (!audioCtx) return;
+      var now = audioCtx.currentTime;
+
+      if (toneName === 'Gentle Chime') {
+        var notes = [659.25, 830.61, 987.77, 1318.51];
+        notes.forEach(function(freq, idx) {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+          gain.gain.setValueAtTime(0.4, now + idx * 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 1.2);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.15);
+          osc.stop(now + idx * 0.15 + 1.2);
+        });
+      } else if (toneName === 'Calm Flute') {
+        var notes = [523.25, 659.25, 783.99];
+        notes.forEach(function(freq, idx) {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.35);
+          gain.gain.setValueAtTime(0.45, now + idx * 0.35);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.35 + 0.6);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.35);
+          osc.stop(now + idx * 0.35 + 0.6);
+        });
+      } else if (toneName === 'Morning Harp') {
+        var notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach(function(freq, idx) {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+          gain.gain.setValueAtTime(0.4, now + idx * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 1.1);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.12);
+          osc.stop(now + idx * 0.12 + 1.1);
+        });
+      } else if (toneName === 'Crystal Marimba') {
+        var notes = [783.99, 987.77, 1174.66];
+        notes.forEach(function(freq, idx) {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.18);
+          gain.gain.setValueAtTime(0.48, now + idx * 0.18);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.18 + 0.6);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.18);
+          osc.stop(now + idx * 0.18 + 0.6);
+        });
+      } else if (toneName === 'Pill Melody') {
+        var notes = [523.25, 783.99, 659.25, 1046.50];
+        notes.forEach(function(freq, idx) {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + idx * 0.18);
+          gain.gain.setValueAtTime(0.42, now + idx * 0.18);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.18 + 0.85);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.18);
+          osc.stop(now + idx * 0.18 + 0.85);
+        });
+      } else if (toneName === 'High Bell') {
+        var osc = audioCtx.createOscillator();
+        var osc2 = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1046.5, now);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(2093.0, now);
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+        osc.connect(gain);
+        osc2.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc2.start(now);
+        osc.stop(now + 1.5);
+        osc2.stop(now + 1.5);
+      } else if (toneName === 'Classic Ring') {
+        [0, 0.35].forEach(function(delay) {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, now + delay);
+          gain.gain.setValueAtTime(0.45, now + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.28);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + delay);
+          osc.stop(now + delay + 0.28);
+        });
+      } else if (toneName === 'Zen Singing Bowl') {
+        var freqs = [432, 864, 1296];
+        freqs.forEach(function(freq, idx) {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          var vol = idx === 0 ? 0.45 : (0.18 / (idx + 1));
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(vol, now + 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 2.0);
+        });
+      }
+    } catch (e) {}
+  };
+</script>
+</body>
+</html>
+`;
 
 export default function MedicineRemindersScreen() {
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -22,66 +171,82 @@ export default function MedicineRemindersScreen() {
   const [selectedTone, setSelectedTone] = useState('Gentle Chime');
   const [playingTone, setPlayingTone] = useState<string | null>(null);
 
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const webViewRef = useRef<any>(null);
+  const timeoutRef = useRef<any>(null);
 
-  const tones = ['Gentle Chime', 'Calm Flute', 'High Bell', 'Classic Ring'];
+  const tones = [
+    'Gentle Chime',
+    'Calm Flute',
+    'Morning Harp',
+    'Crystal Marimba',
+    'Pill Melody',
+    'High Bell',
+    'Classic Ring',
+    'Zen Singing Bowl'
+  ];
 
   useEffect(() => {
-    // Configure audio mode for iOS and Android
-    Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-    }).catch(() => {});
-
     return () => {
-      if (soundRef.current) {
-        soundRef.current.unloadAsync().catch(() => {});
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
     };
   }, []);
 
-  const playSound = async (toneName: string) => {
-    try {
-      if (vibrationEnabled) {
-        Vibration.vibrate(100);
-      }
-
-      if (!soundEnabled) {
-        Alert.alert(
-          'Sound Is Turned Off',
-          'The "Sound Alerts" toggle is switched OFF. Turn it ON above to hear alarm tones.'
-        );
-        return;
-      }
-
-      setPlayingTone(toneName);
-
-      if (soundRef.current) {
-        await soundRef.current.stopAsync().catch(() => {});
-        await soundRef.current.unloadAsync().catch(() => {});
-        soundRef.current = null;
-      }
-
-      const soundSource = SOUND_FILES[toneName];
-      if (soundSource) {
-        const { sound } = await Audio.Sound.createAsync(
-          soundSource,
-          { shouldPlay: true, volume: 1.0 }
-        );
-        soundRef.current = sound;
-        sound.setOnPlaybackStatusUpdate((status) => {
-          if (status.isLoaded && status.didJustFinish) {
-            setPlayingTone(null);
-          }
-        });
-      } else {
-        setPlayingTone(null);
-      }
-    } catch {
-      setPlayingTone(null);
-      Alert.alert('Alert Tone', `Playing tone "${toneName}" 🔔`);
+  const playSound = (toneName: string) => {
+    if (!soundEnabled) {
+      Alert.alert(
+        'Sound Is Turned Off',
+        'The "Sound Alerts" toggle is switched OFF. Turn it ON above to hear alarm tones.'
+      );
+      return;
     }
+
+    // Physical vibration patterns tailored to each tune
+    if (vibrationEnabled) {
+      switch (toneName) {
+        case 'Gentle Chime':
+          Vibration.vibrate([0, 60, 80, 60]);
+          break;
+        case 'Calm Flute':
+          Vibration.vibrate([0, 100, 100, 150]);
+          break;
+        case 'Morning Harp':
+          Vibration.vibrate([0, 50, 50, 50, 50, 50]);
+          break;
+        case 'Crystal Marimba':
+          Vibration.vibrate([0, 80, 80, 80]);
+          break;
+        case 'Pill Melody':
+          Vibration.vibrate([0, 70, 60, 70, 60, 100]);
+          break;
+        case 'High Bell':
+          Vibration.vibrate([0, 180]);
+          break;
+        case 'Classic Ring':
+          Vibration.vibrate([0, 120, 60, 120, 60, 120]);
+          break;
+        case 'Zen Singing Bowl':
+          Vibration.vibrate([0, 250]);
+          break;
+        default:
+          Vibration.vibrate(100);
+      }
+    }
+
+    setPlayingTone(toneName);
+
+    // Trigger speaker sound playback via Web Audio API inside invisible engine
+    const script = `window.playTone && window.playTone('${toneName}'); true;`;
+    webViewRef.current?.injectJavaScript(script);
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      setPlayingTone(null);
+    }, 1800);
   };
 
   const handleSave = () => {
@@ -91,6 +256,19 @@ export default function MedicineRemindersScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Medicine Reminders" onBack={() => router.back()} />
+      
+      {/* Invisible speaker audio engine */}
+      <View style={{ width: 1, height: 1, opacity: 0, position: 'absolute' }}>
+        <WebView
+          ref={webViewRef}
+          originWhitelist={['*']}
+          source={{ html: AUDIO_ENGINE_HTML }}
+          mediaPlaybackRequiresUserAction={false}
+          allowsInlineMediaPlayback={true}
+          javaScriptEnabled={true}
+        />
+      </View>
+
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
         {/* Top Info Banner */}
@@ -169,7 +347,7 @@ export default function MedicineRemindersScreen() {
         </Card>
 
         {/* Tone Selection */}
-        <Text style={styles.sectionTitle}>Alert Tone</Text>
+        <Text style={styles.sectionTitle}>Alert Tone ({tones.length} Available)</Text>
         <Card style={styles.card}>
           {tones.map((tone, idx) => {
             const isSelected = selectedTone === tone;
@@ -189,7 +367,7 @@ export default function MedicineRemindersScreen() {
                     {isThisPlaying && (
                       <View style={styles.playingBadge}>
                         <Feather name="volume-2" size={12} color="#059669" />
-                        <Text style={styles.playingBadgeText}>Playing</Text>
+                        <Text style={styles.playingBadgeText}>Playing...</Text>
                       </View>
                     )}
                   </View>
@@ -217,6 +395,13 @@ export default function MedicineRemindersScreen() {
               {playingTone === selectedTone ? `Playing "${selectedTone}"...` : `Test "${selectedTone}"`}
             </Text>
           </TouchableOpacity>
+
+          <View style={styles.unmuteHint}>
+            <Feather name="volume-x" size={14} color="#8E8E93" style={{ marginRight: 6 }} />
+            <Text style={styles.unmuteHintText}>
+              Ensure your iPhone physical side-switch is not set to Silent to hear the speaker.
+            </Text>
+          </View>
         </Card>
 
         {/* Safety Escalation */}
@@ -405,5 +590,19 @@ const styles = StyleSheet.create({
     color: '#0EADF1',
     fontWeight: '700',
     fontSize: 15
+  },
+
+  unmuteHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+    paddingHorizontal: 4,
+    paddingVertical: 4
+  },
+  unmuteHintText: {
+    fontSize: 12,
+    color: '#8E8E93',
+    flex: 1,
+    lineHeight: 16
   }
 });
