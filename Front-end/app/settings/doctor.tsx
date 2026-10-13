@@ -109,6 +109,22 @@ export default function DoctorInfoScreen() {
           </View>
         </Card>
 
+        {/* Last Appointment Card */}
+        <Text style={styles.sectionTitle}>Last Appointment</Text>
+        <Card style={styles.pastAppointmentCard}>
+          <View style={styles.appointmentHeader}>
+            <View style={[styles.calBadge, styles.pastCalBadge]}>
+              <Text style={[styles.calMonth, styles.pastCalMonth]}>OCT</Text>
+              <Text style={[styles.calDay, styles.pastCalDay]}>01</Text>
+            </View>
+            <View style={styles.appointmentMeta}>
+              <Text style={styles.appointmentTitle}>Quarterly Diabetes & BP Check</Text>
+              <Text style={styles.appointmentTimePast}>Tuesday at 04:30 PM • Completed</Text>
+              <Text style={styles.appointmentNotes}>HbA1c: 6.8% • Dose adjusted to Sitaglu Met 50/850</Text>
+            </View>
+          </View>
+        </Card>
+
         {/* Doctor's Guidance Notes */}
         <Text style={styles.sectionTitle}>Doctor&apos;s Clinical Notes</Text>
         <Card style={styles.notesCard}>
@@ -318,6 +334,35 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#10B981',
     fontWeight: '600'
+  },
+  pastAppointmentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: Spacing.md,
+    marginBottom: Spacing.xl,
+    borderWidth: 0,
+    borderLeftWidth: 4,
+    borderLeftColor: '#10B981'
+  },
+  pastCalBadge: {
+    backgroundColor: '#ECFDF5'
+  },
+  pastCalMonth: {
+    color: '#059669'
+  },
+  pastCalDay: {
+    color: '#059669'
+  },
+  appointmentTimePast: {
+    fontSize: 13,
+    color: '#059669',
+    fontWeight: '600',
+    marginBottom: 4
+  },
+  appointmentNotes: {
+    fontSize: 13,
+    color: '#6B7280',
+    lineHeight: 18
   },
 
   notesCard: {

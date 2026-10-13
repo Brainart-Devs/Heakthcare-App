@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
-import { View, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Vibration } from 'react-native';
 import { Text, Header, Card, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+
+const SOUND_FILES: Record<string, any> = {
+  'Gentle Chime': require('@/assets/sounds/chime.wav'),
+  'Calm Flute': require('@/assets/sounds/flute.wav'),
+  'High Bell': require('@/assets/sounds/bell.wav'),
+  'Classic Ring': require('@/assets/sounds/ring.wav'),
+};
 
 export default function MedicineRemindersScreen() {
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -12,11 +20,68 @@ export default function MedicineRemindersScreen() {
   const [persistentAlarm, setPersistentAlarm] = useState(true);
   const [caregiverEscalation, setCaregiverEscalation] = useState(true);
   const [selectedTone, setSelectedTone] = useState('Gentle Chime');
+  const [playingTone, setPlayingTone] = useState<string | null>(null);
+
+  const soundRef = useRef<Audio.Sound | null>(null);
 
   const tones = ['Gentle Chime', 'Calm Flute', 'High Bell', 'Classic Ring'];
 
-  const handleTestSound = () => {
-    Alert.alert('Playing Tone', `Simulating "${selectedTone}" at 80% volume... 🔔`);
+  useEffect(() => {
+    // Configure audio mode for iOS and Android
+    Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: false,
+      shouldDuckAndroid: true,
+    }).catch(() => {});
+
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync().catch(() => {});
+      }
+    };
+  }, []);
+
+  const playSound = async (toneName: string) => {
+    try {
+      if (vibrationEnabled) {
+        Vibration.vibrate(100);
+      }
+
+      if (!soundEnabled) {
+        Alert.alert(
+          'Sound Is Turned Off',
+          'The "Sound Alerts" toggle is switched OFF. Turn it ON above to hear alarm tones.'
+        );
+        return;
+      }
+
+      setPlayingTone(toneName);
+
+      if (soundRef.current) {
+        await soundRef.current.stopAsync().catch(() => {});
+        await soundRef.current.unloadAsync().catch(() => {});
+        soundRef.current = null;
+      }
+
+      const soundSource = SOUND_FILES[toneName];
+      if (soundSource) {
+        const { sound } = await Audio.Sound.createAsync(
+          soundSource,
+          { shouldPlay: true, volume: 1.0 }
+        );
+        soundRef.current = sound;
+        sound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            setPlayingTone(null);
+          }
+        });
+      } else {
+        setPlayingTone(null);
+      }
+    } catch {
+      setPlayingTone(null);
+      Alert.alert('Alert Tone', `Playing tone "${toneName}" 🔔`);
+    }
   };
 
   const handleSave = () => {
@@ -108,14 +173,26 @@ export default function MedicineRemindersScreen() {
         <Card style={styles.card}>
           {tones.map((tone, idx) => {
             const isSelected = selectedTone === tone;
+            const isThisPlaying = playingTone === tone;
             return (
               <React.Fragment key={tone}>
                 <TouchableOpacity 
-                  style={styles.toneRow} 
-                  onPress={() => setSelectedTone(tone)}
+                  style={[styles.toneRow, isSelected && styles.toneRowSelected]} 
+                  onPress={() => {
+                    setSelectedTone(tone);
+                    playSound(tone);
+                  }}
                   activeOpacity={0.7}
                 >
-                  <Text style={[styles.toneName, isSelected && styles.toneNameSelected]}>{tone}</Text>
+                  <View style={styles.toneLeftCol}>
+                    <Text style={[styles.toneName, isSelected && styles.toneNameSelected]}>{tone}</Text>
+                    {isThisPlaying && (
+                      <View style={styles.playingBadge}>
+                        <Feather name="volume-2" size={12} color="#059669" />
+                        <Text style={styles.playingBadgeText}>Playing</Text>
+                      </View>
+                    )}
+                  </View>
                   <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
                     {isSelected && <View style={styles.radioInner} />}
                   </View>
@@ -125,9 +202,20 @@ export default function MedicineRemindersScreen() {
             );
           })}
 
-          <TouchableOpacity style={styles.testBtn} onPress={handleTestSound} activeOpacity={0.8}>
-            <Feather name="volume-2" size={16} color="#0EADF1" style={{ marginRight: 6 }} />
-            <Text style={styles.testBtnText}>Test Selected Sound</Text>
+          <TouchableOpacity 
+            style={[styles.testBtn, playingTone === selectedTone && styles.testBtnPlaying]} 
+            onPress={() => playSound(selectedTone)} 
+            activeOpacity={0.8}
+          >
+            <Feather 
+              name={playingTone === selectedTone ? "volume-2" : "volume-1"} 
+              size={18} 
+              color={playingTone === selectedTone ? "#059669" : "#0EADF1"} 
+              style={{ marginRight: 8 }} 
+            />
+            <Text style={[styles.testBtnText, playingTone === selectedTone && { color: '#059669' }]}>
+              {playingTone === selectedTone ? `Playing "${selectedTone}"...` : `Test "${selectedTone}"`}
+            </Text>
           </TouchableOpacity>
         </Card>
 
@@ -247,7 +335,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 10
+  },
+  toneRowSelected: {
+    backgroundColor: '#F0F9FF'
+  },
+  toneLeftCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
   },
   toneName: {
     fontSize: 16,
@@ -256,6 +354,20 @@ const styles = StyleSheet.create({
   },
   toneNameSelected: {
     color: '#0EADF1',
+    fontWeight: '700'
+  },
+  playingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    gap: 4
+  },
+  playingBadgeText: {
+    fontSize: 11,
+    color: '#059669',
     fontWeight: '700'
   },
   radioCircle: {
@@ -283,12 +395,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#F0F9FF',
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: 14,
     marginTop: Spacing.sm
+  },
+  testBtnPlaying: {
+    backgroundColor: '#ECFDF5'
   },
   testBtnText: {
     color: '#0EADF1',
     fontWeight: '700',
-    fontSize: 14
+    fontSize: 15
   }
 });
