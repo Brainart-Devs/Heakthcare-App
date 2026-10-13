@@ -23,10 +23,6 @@ export default function SettingsScreen() {
   const { user } = useUser();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleComingSoon = (feature: string) => {
-    Alert.alert('Coming Soon', `The '${feature}' feature will be available in the Backend Phase!`);
-  };
-
   
   return (
     <SafeAreaView style={styles.container}>
@@ -53,20 +49,20 @@ export default function SettingsScreen() {
         <View style={styles.menuSection}>
           <MenuItem icon="user" title="My Profile" subtitle="Personal and health details" onPress={() => router.push('/profile')} />
           <MenuItem icon="users" title="Caregiver Access" subtitle="Manage who can see your data" onPress={() => router.push('/settings/caregiver')} />
-          <MenuItem icon="activity" title="Doctor Information" subtitle="Primary care physician details" onPress={() => handleComingSoon('Doctor Info')} />
+          <MenuItem icon="activity" title="Doctor Information" subtitle="Primary care physician details" onPress={() => router.push('/settings/doctor' as any)} />
         </View>
 
         <Text style={styles.sectionHeader}>Preferences</Text>
         <View style={styles.menuSection}>
-          <MenuItem icon="bell" title="Medicine Reminders" subtitle="Configure alert sounds and times" onPress={() => handleComingSoon('Reminders')} />
-          <MenuItem icon="settings" title="App Preferences" subtitle="Theme, units, and layout" onPress={() => handleComingSoon('App Preferences')} />
-          <MenuItem icon="globe" title="Language" subtitle="English / اردو" onPress={() => handleComingSoon('Language')} />
+          <MenuItem icon="bell" title="Medicine Reminders" subtitle="Configure alert sounds and times" onPress={() => router.push('/settings/reminders' as any)} />
+          <MenuItem icon="settings" title="App Preferences" subtitle="Theme, units, and layout" onPress={() => router.push('/settings/preferences' as any)} />
+          <MenuItem icon="globe" title="Language" subtitle="English / اردو" onPress={() => router.push('/settings/language' as any)} />
         </View>
 
         <Text style={styles.sectionHeader}>Support & Security</Text>
         <View style={styles.menuSection}>
-          <MenuItem icon="shield" title="Privacy & Security" subtitle="Biometrics and data control" onPress={() => handleComingSoon('Privacy')} />
-          <MenuItem icon="help-circle" title="Help & Support" subtitle="FAQs and contact us" onPress={() => handleComingSoon('Support')} />
+          <MenuItem icon="shield" title="Privacy & Security" subtitle="Biometrics and data control" onPress={() => router.push('/settings/security' as any)} />
+          <MenuItem icon="help-circle" title="Help & Support" subtitle="FAQs and contact us" onPress={() => router.push('/settings/support' as any)} />
         </View>
 
         <TouchableOpacity 

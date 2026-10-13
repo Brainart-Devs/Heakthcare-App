@@ -28,6 +28,12 @@ export default function RootLayout() {
         <Stack.Screen name="ai/insights" />
         <Stack.Screen name="reports/export" options={{ presentation: 'modal' }} />
         <Stack.Screen name="settings/caregiver" />
+        <Stack.Screen name="settings/doctor" />
+        <Stack.Screen name="settings/reminders" />
+        <Stack.Screen name="settings/preferences" />
+        <Stack.Screen name="settings/language" />
+        <Stack.Screen name="settings/security" />
+        <Stack.Screen name="settings/support" />
         <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
         <Stack.Screen name="safety-alert" options={{ presentation: 'fullScreenModal' }} />
       </Stack>

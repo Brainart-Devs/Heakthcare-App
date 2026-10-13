@@ -1,41 +1,334 @@
-import React from 'react';
-import { View, SafeAreaView, StyleSheet, ScrollView } from 'react-native';
-import { Text, Header, Card, Badge, Button } from '@/components/ui';
+import React, { useState } from 'react';
+import { View, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Text, Header, Card, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
 
 export default function ReportsScreen() {
+  const [selectedRange, setSelectedRange] = useState<'7' | '30' | '90'>('7');
+
+  const ranges = [
+    { key: '7', label: '7 Days' },
+    { key: '30', label: '30 Days' },
+    { key: '90', label: '90 Days' }
+  ];
+
+  // Dummy trend bars for Sugar (7 days)
+  const sugarData = [
+    { day: 'Mon', val: 105, target: 120, status: 'normal' },
+    { day: 'Tue', val: 118, target: 120, status: 'normal' },
+    { day: 'Wed', val: 142, target: 120, status: 'high' },
+    { day: 'Thu', val: 112, target: 120, status: 'normal' },
+    { day: 'Fri', val: 125, target: 120, status: 'normal' },
+    { day: 'Sat', val: 135, target: 120, status: 'high' },
+    { day: 'Sun', val: 110, target: 120, status: 'normal' }
+  ];
+
+  // Dummy trend bars for Blood Pressure (7 days)
+  const bpData = [
+    { day: 'Mon', sys: 120, dia: 80, label: '120/80', status: 'normal' },
+    { day: 'Tue', sys: 124, dia: 82, label: '124/82', status: 'normal' },
+    { day: 'Wed', sys: 138, dia: 88, label: '138/88', status: 'high' },
+    { day: 'Thu', sys: 118, dia: 78, label: '118/78', status: 'normal' },
+    { day: 'Fri', sys: 122, dia: 80, label: '122/80', status: 'normal' },
+    { day: 'Sat', sys: 128, dia: 84, label: '128/84', status: 'normal' },
+    { day: 'Sun', sys: 121, dia: 79, label: '121/79', status: 'normal' }
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Reports" onBack={() => router.push('/')} />
-      <View style={styles.tabs}>
-        <Badge label="7 Days" status="default" />
-        <Badge label="30 Days" status="info" />
-        <Badge label="90 Days" status="default" />
+      
+      {/* Time Range Pills */}
+      <View style={styles.rangeSelector}>
+        {ranges.map((r) => {
+          const isSelected = selectedRange === r.key;
+          return (
+            <TouchableOpacity
+              key={r.key}
+              style={[styles.rangePill, isSelected && styles.rangePillActive]}
+              onPress={() => setSelectedRange(r.key as any)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.rangeText, isSelected && styles.rangeTextActive]}>
+                {r.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Card style={styles.card}>
-          <Text variant="h3" style={{marginBottom: Spacing.md}}>Sugar Trend (mg/dL)</Text>
-          <View style={styles.chartPlaceholder}>
-            <Text variant="body" secondary>(Trend chart will appear here)</Text>
-          </View>
-        </Card>
-        <Card style={styles.card}>
-          <Text variant="h3" style={{marginBottom: Spacing.md}}>Blood Pressure Trend (mmHg)</Text>
-          <View style={styles.chartPlaceholder}>
-            <Text variant="body" secondary>(Trend chart will appear here)</Text>
-          </View>
-        </Card>
+
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
-        <Button title="Share / Export Report" onPress={() => router.push('/reports/export' as any)} style={{marginTop: Spacing.lg}} />
+        {/* Quick Health Summary Stat Boxes */}
+        <View style={styles.statsRow}>
+          <Card style={styles.statBox}>
+            <Text style={styles.statLabel}>Avg Blood Sugar</Text>
+            <Text style={styles.statValue}>121 <Text style={styles.statUnit}>mg/dL</Text></Text>
+            <View style={styles.statTagGood}>
+              <Feather name="check" size={12} color="#059669" />
+              <Text style={styles.statTagText}>In Target</Text>
+            </View>
+          </Card>
+
+          <Card style={styles.statBox}>
+            <Text style={styles.statLabel}>Avg Blood Pressure</Text>
+            <Text style={styles.statValue}>124/81 <Text style={styles.statUnit}>mmHg</Text></Text>
+            <View style={styles.statTagGood}>
+              <Feather name="check" size={12} color="#059669" />
+              <Text style={styles.statTagText}>Normal</Text>
+            </View>
+          </Card>
+        </View>
+
+        {/* Sugar Trend Chart Card */}
+        <Card style={styles.chartCard}>
+          <View style={styles.chartHeader}>
+            <View>
+              <Text style={styles.chartTitle}>Fasting Sugar Trend</Text>
+              <Text style={styles.chartSubtitle}>Target: Under 125 mg/dL</Text>
+            </View>
+            <View style={styles.chartLegend}>
+              <View style={[styles.legendDot, { backgroundColor: '#0EADF1' }]} />
+              <Text style={styles.legendText}>mg/dL</Text>
+            </View>
+          </View>
+
+          {/* Visual Bar Chart */}
+          <View style={styles.barChartContainer}>
+            {sugarData.map((d) => {
+              const heightPercent = Math.min(100, Math.max(30, (d.val / 160) * 100));
+              const isHigh = d.status === 'high';
+              return (
+                <View key={d.day} style={styles.barCol}>
+                  <Text style={styles.barValText}>{d.val}</Text>
+                  <View style={styles.barTrack}>
+                    <View 
+                      style={[
+                        styles.barFill, 
+                        { height: `${heightPercent}%` },
+                        isHigh && { backgroundColor: '#F59E0B' }
+                      ]} 
+                    />
+                  </View>
+                  <Text style={styles.barDayText}>{d.day}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </Card>
+
+        {/* Blood Pressure Trend Chart Card */}
+        <Card style={styles.chartCard}>
+          <View style={styles.chartHeader}>
+            <View>
+              <Text style={styles.chartTitle}>Blood Pressure Trend</Text>
+              <Text style={styles.chartSubtitle}>Target: Under 130/85 mmHg</Text>
+            </View>
+            <View style={styles.chartLegend}>
+              <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
+              <Text style={styles.legendText}>Systolic</Text>
+            </View>
+          </View>
+
+          {/* Visual BP Bar Chart */}
+          <View style={styles.barChartContainer}>
+            {bpData.map((d) => {
+              const heightPercent = Math.min(100, Math.max(30, (d.sys / 150) * 100));
+              const isHigh = d.status === 'high';
+              return (
+                <View key={d.day} style={styles.barCol}>
+                  <Text style={styles.barValText}>{d.sys}</Text>
+                  <View style={styles.barTrack}>
+                    <View 
+                      style={[
+                        styles.barFill, 
+                        { height: `${heightPercent}%`, backgroundColor: '#10B981' },
+                        isHigh && { backgroundColor: '#EF4444' }
+                      ]} 
+                    />
+                  </View>
+                  <Text style={styles.barDayText}>{d.day}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </Card>
+
+        {/* Export CTA Button */}
+        <Button 
+          title="Share / Export Full Report" 
+          onPress={() => router.push('/reports/export' as any)} 
+          style={{ marginTop: Spacing.sm }} 
+        />
+
       </ScrollView>
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9FA' },
-  tabs: { flexDirection: 'row', padding: Spacing.md, gap: Spacing.sm, backgroundColor: '#fff', justifyContent: 'center' },
-  content: { padding: Spacing.lg },
-  card: { marginBottom: Spacing.md },
-  chartPlaceholder: { height: 150, backgroundColor: '#E5E5EA', justifyContent: 'center', alignItems: 'center', borderRadius: 8 }
+  content: { padding: Spacing.lg, paddingBottom: 60 },
+
+  rangeSelector: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F3',
+    gap: Spacing.sm,
+    justifyContent: 'center'
+  },
+  rangePill: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6'
+  },
+  rangePillActive: {
+    backgroundColor: '#0EADF1'
+  },
+  rangeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4B5563'
+  },
+  rangeTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700'
+  },
+
+  statsRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg
+  },
+  statBox: {
+    flex: 1,
+    padding: Spacing.md,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1
+  },
+  statLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8E8E93',
+    marginBottom: 4
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 6
+  },
+  statUnit: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6B7280'
+  },
+  statTagGood: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    gap: 4
+  },
+  statTagText: {
+    fontSize: 11,
+    color: '#059669',
+    fontWeight: '700'
+  },
+
+  chartCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    borderWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1
+  },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg
+  },
+  chartTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 2
+  },
+  chartSubtitle: {
+    fontSize: 12,
+    color: '#8E8E93'
+  },
+  chartLegend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '600'
+  },
+
+  barChartContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 140,
+    paddingTop: 10
+  },
+  barCol: {
+    alignItems: 'center',
+    flex: 1
+  },
+  barValText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#6B7280',
+    marginBottom: 4
+  },
+  barTrack: {
+    height: 90,
+    width: 14,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 7,
+    justifyContent: 'flex-end',
+    overflow: 'hidden'
+  },
+  barFill: {
+    width: '100%',
+    backgroundColor: '#0EADF1',
+    borderRadius: 7
+  },
+  barDayText: {
+    fontSize: 11,
+    color: '#8E8E93',
+    fontWeight: '600',
+    marginTop: 6
+  }
 });
