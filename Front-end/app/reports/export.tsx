@@ -6,22 +6,33 @@ import { router } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Modal } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import { useTheme } from '@/context/ThemeContext';
 
-const CheckboxRow = ({ label, isChecked, onPress }: { label: string, isChecked: boolean, onPress: () => void }) => (
+const CheckboxRow = ({ label, isChecked, onPress, textColor, borderColor }: { label: string, isChecked: boolean, onPress: () => void, textColor?: string, borderColor?: string }) => (
     <TouchableOpacity style={styles.checkboxRow} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.checkbox, isChecked && styles.checkboxActive]}>
+      <View style={[styles.checkbox, borderColor ? { borderColor } : null, isChecked && styles.checkboxActive]}>
         {isChecked && <Feather name="check" size={14} color="#FFF" />}
       </View>
-      <Text style={styles.checkboxLabel}>{label}</Text>
+      <Text style={[styles.checkboxLabel, textColor ? { color: textColor } : null]}>{label}</Text>
     </TouchableOpacity>
   );
 
 export default function ReportExport() {
+  const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [format, setFormat] = useState('PDF');
   const [showCalendar, setShowCalendar] = useState<'from' | 'to' | null>(null);
-  const [fromDate, setFromDate] = useState('2024-09-01');
-  const [toDate, setToDate] = useState('2024-09-30');
+
+  const getInitialDates = () => {
+    const today = new Date();
+    const past = new Date();
+    past.setDate(today.getDate() - 30);
+    const fmt = (d: Date) => `${d.getFullYear()}-${('0' + (d.getMonth() + 1)).slice(-2)}-${('0' + d.getDate()).slice(-2)}`;
+    return { from: fmt(past), to: fmt(today) };
+  };
+
+  const [fromDate, setFromDate] = useState(() => getInitialDates().from);
+  const [toDate, setToDate] = useState(() => getInitialDates().to);
 
   const formatDisplayDate = (dateString: string) => {
     try {
@@ -54,44 +65,44 @@ export default function ReportExport() {
 
   
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Share / Export Report" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
-        <Text style={styles.sectionTitle}>Select Date Range</Text>
-        <Card style={styles.dateCard}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Select Date Range</Text>
+        <Card style={[styles.dateCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
           <TouchableOpacity style={styles.dateSide} onPress={() => setShowCalendar('from')}>
-            <Feather name="calendar" size={24} color="#6B7280" style={{marginRight: 12}} />
+            <Feather name="calendar" size={24} color={theme.primary} style={{marginRight: 12}} />
             <View>
-              <Text style={styles.dateLabel}>From</Text>
-              <Text style={styles.dateValue}>{formatDisplayDate(fromDate)}</Text>
+              <Text style={[styles.dateLabel, { color: theme.textSecondary }]}>From</Text>
+              <Text style={[styles.dateValue, { color: theme.text }]}>{formatDisplayDate(fromDate)}</Text>
             </View>
           </TouchableOpacity>
           
-          <View style={styles.dateDivider} />
+          <View style={[styles.dateDivider, { backgroundColor: theme.border }]} />
           
           <TouchableOpacity style={styles.dateSide} onPress={() => setShowCalendar('to')}>
-            <Feather name="calendar" size={24} color="#6B7280" style={{marginRight: 12}} />
+            <Feather name="calendar" size={24} color={theme.primary} style={{marginRight: 12}} />
             <View>
-              <Text style={styles.dateLabel}>To</Text>
-              <Text style={styles.dateValue}>{formatDisplayDate(toDate)}</Text>
+              <Text style={[styles.dateLabel, { color: theme.textSecondary }]}>To</Text>
+              <Text style={[styles.dateValue, { color: theme.text }]}>{formatDisplayDate(toDate)}</Text>
             </View>
           </TouchableOpacity>
         </Card>
 
         {!!showCalendar && (
           <Modal transparent animationType="fade" visible={!!showCalendar}>
-            <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 20 }}>
-              <View style={{ backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: '#f8f9fa' }}>
+            <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: 20 }}>
+              <View style={{ backgroundColor: theme.card, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: theme.border }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: isDark ? '#1E293B' : '#f8f9fa' }}>
                   <TouchableOpacity onPress={() => setShowCalendar(null)}>
-                    <Text style={{ color: '#0EADF1', fontWeight: 'bold' }}>Close</Text>
+                    <Text style={{ color: theme.primary, fontWeight: 'bold' }}>Close</Text>
                   </TouchableOpacity>
                 </View>
                 <Calendar
                   current={showCalendar === 'from' ? fromDate : toDate}
                   markedDates={{
-                    [showCalendar === 'from' ? fromDate : toDate]: { selected: true, selectedColor: '#0EADF1' }
+                    [showCalendar === 'from' ? fromDate : toDate]: { selected: true, selectedColor: theme.primary }
                   }}
                   onDayPress={(day: any) => {
                     if (showCalendar === 'from') {
@@ -102,8 +113,15 @@ export default function ReportExport() {
                     setShowCalendar(null);
                   }}
                   theme={{
-                    todayTextColor: '#0EADF1',
-                    arrowColor: '#0EADF1',
+                    backgroundColor: theme.card,
+                    calendarBackground: theme.card,
+                    textSectionTitleColor: theme.textSecondary,
+                    todayTextColor: theme.primary,
+                    dayTextColor: theme.text,
+                    textDisabledColor: isDark ? '#475569' : '#d9e1e8',
+                    arrowColor: theme.primary,
+                    monthTextColor: theme.primary,
+                    indicatorColor: theme.primary,
                     textMonthFontWeight: 'bold',
                   }}
                 />
@@ -112,17 +130,17 @@ export default function ReportExport() {
           </Modal>
         )}
 
-        <Text style={styles.sectionTitle}>Include in Report</Text>
-        <Card style={styles.includeCard}>
-          <CheckboxRow label="Sugar Readings" isChecked={includes.sugar} onPress={() => toggleInclude('sugar')} />
-          <CheckboxRow label="Blood Pressure" isChecked={includes.bp} onPress={() => toggleInclude('bp')} />
-          <CheckboxRow label="Pulse" isChecked={includes.pulse} onPress={() => toggleInclude('pulse')} />
-          <CheckboxRow label="Weight" isChecked={includes.weight} onPress={() => toggleInclude('weight')} />
-          <CheckboxRow label="Medicine Adherence" isChecked={includes.medicine} onPress={() => toggleInclude('medicine')} />
-          <CheckboxRow label="Symptoms & Notes" isChecked={includes.symptoms} onPress={() => toggleInclude('symptoms')} />
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Include in Report</Text>
+        <Card style={[styles.includeCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
+          <CheckboxRow label="Sugar Readings" isChecked={includes.sugar} onPress={() => toggleInclude('sugar')} textColor={theme.text} borderColor={theme.border} />
+          <CheckboxRow label="Blood Pressure" isChecked={includes.bp} onPress={() => toggleInclude('bp')} textColor={theme.text} borderColor={theme.border} />
+          <CheckboxRow label="Pulse" isChecked={includes.pulse} onPress={() => toggleInclude('pulse')} textColor={theme.text} borderColor={theme.border} />
+          <CheckboxRow label="Weight" isChecked={includes.weight} onPress={() => toggleInclude('weight')} textColor={theme.text} borderColor={theme.border} />
+          <CheckboxRow label="Medicine Adherence" isChecked={includes.medicine} onPress={() => toggleInclude('medicine')} textColor={theme.text} borderColor={theme.border} />
+          <CheckboxRow label="Symptoms & Notes" isChecked={includes.symptoms} onPress={() => toggleInclude('symptoms')} textColor={theme.text} borderColor={theme.border} />
         </Card>
 
-        <Text style={styles.sectionTitle}>Export Format</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Export Format</Text>
         <View style={styles.formatRow}>
           <TouchableOpacity 
             style={[styles.formatBtn, { backgroundColor: '#FF4B4B', opacity: format === 'PDF' ? 1 : 0.4 }]} 
@@ -148,7 +166,7 @@ export default function ReportExport() {
           {!loading && <Feather name="share" size={20} color="#FFF" style={{position: 'absolute', right: 20}} />}
         </TouchableOpacity>
         
-        <Text style={styles.footerText}>
+        <Text style={[styles.footerText, { color: theme.textSecondary }]}>
           You can share this report with your doctor{'\n'}or family members.
         </Text>
         

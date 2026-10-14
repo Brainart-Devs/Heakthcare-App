@@ -1,20 +1,18 @@
 import { Stack } from 'expo-router';
-import { useThemeColor } from '@/constants/theme';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { UserProvider } from '@/context/UserContext';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { StatusBar } from 'expo-status-bar';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const theme = useThemeColor();
-
-  useEffect(() => {
-    SplashScreen.hideAsync();
-  }, []);
+function RootStack() {
+  const { theme, isDark } = useTheme();
 
   return (
-    <UserProvider>
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
@@ -37,6 +35,21 @@ export default function RootLayout() {
         <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
         <Stack.Screen name="safety-alert" options={{ presentation: 'fullScreenModal' }} />
       </Stack>
-    </UserProvider>
+    </>
   );
 }
+
+export default function RootLayout() {
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
+  return (
+    <ThemeProvider>
+      <UserProvider>
+        <RootStack />
+      </UserProvider>
+    </ThemeProvider>
+  );
+}
+

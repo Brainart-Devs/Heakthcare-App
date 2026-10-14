@@ -5,6 +5,7 @@ import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
+import { useTheme } from '@/context/ThemeContext';
 
 export const GoogleLogo = () => (
   <Svg width="20" height="20" viewBox="0 0 48 48">
@@ -15,17 +16,18 @@ export const GoogleLogo = () => (
   </Svg>
 );
 
-export const AppleLogo = () => (
+export const AppleLogo = ({ color = '#000000' }: { color?: string }) => (
   <Svg width="20" height="20" viewBox="0 0 384 512">
-    <Path fill="#000000" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+    <Path fill={color} d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
   </Svg>
 );
 
 export default function LoginScreen() {
+  const { theme, isDark } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.content}>
           
@@ -36,10 +38,10 @@ export default function LoginScreen() {
               resizeMode="contain" 
             />
             <View style={styles.titleRow}>
-              <Text variant="h1" color="#16449C" style={{letterSpacing: -1}}>HealthTrack </Text>
-              <Text variant="h1" color="#0EADF1" style={{letterSpacing: -1}}>AI</Text>
+              <Text variant="h1" color={theme.primary} style={{letterSpacing: -1}}>HealthTrack </Text>
+              <Text variant="h1" color={theme.info} style={{letterSpacing: -1}}>AI</Text>
             </View>
-            <Text variant="bodyLarge" color="#4A6583" style={{marginTop: Spacing.sm}}>
+            <Text variant="bodyLarge" color={theme.textSecondary} style={{marginTop: Spacing.sm}}>
               Sign in to your account
             </Text>
           </View>
@@ -47,24 +49,22 @@ export default function LoginScreen() {
           <View style={styles.formSection}>
             <Input 
               placeholder="Email or Phone" 
-              containerStyle={{backgroundColor: '#FFFFFF', borderColor: '#E5E5EA'}}
-              leftIcon={<Feather name="mail" size={20} color="#8E8E93" />}
+              leftIcon={<Feather name="mail" size={20} color={theme.textSecondary} />}
             />
             
             <Input 
               placeholder="Password" 
               secureTextEntry={!showPassword}
-              containerStyle={{backgroundColor: '#FFFFFF', borderColor: '#E5E5EA'}}
-              leftIcon={<Feather name="lock" size={20} color="#8E8E93" />}
+              leftIcon={<Feather name="lock" size={20} color={theme.textSecondary} />}
               rightIcon={
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="#8E8E93" />
+                  <Feather name={showPassword ? "eye-off" : "eye"} size={20} color={theme.textSecondary} />
                 </TouchableOpacity>
               }
             />
             
             <View style={{alignItems: 'flex-end', marginBottom: Spacing.xl, marginTop: -Spacing.sm}}>
-              <Text variant="bodyLarge" color="#16449C" style={{fontWeight: '600'}} onPress={() => router.push('/(auth)/forgot-password')}>
+              <Text variant="bodyLarge" color={theme.primary} style={{fontWeight: '600'}} onPress={() => router.push('/(auth)/forgot-password')}>
                 Forgot Password?
               </Text>
             </View>
@@ -73,29 +73,29 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text variant="body" color="#8E8E93" style={{paddingHorizontal: Spacing.sm}}>or continue with</Text>
-            <View style={styles.dividerLine} />
+            <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+            <Text variant="body" color={theme.textSecondary} style={{paddingHorizontal: Spacing.sm}}>or continue with</Text>
+            <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
           </View>
 
           <View style={styles.socialButtons}>
             <Button 
               title="Google" 
               variant="outline" 
-              style={{flex: 1, marginRight: Spacing.sm, borderColor: '#E5E5EA'}} 
+              style={{flex: 1, marginRight: Spacing.sm, borderColor: theme.border}} 
               icon={<GoogleLogo />} 
             />
             <Button 
               title="Apple" 
               variant="outline" 
-              style={{flex: 1, marginLeft: Spacing.sm, borderColor: '#E5E5EA'}} 
-              icon={<AppleLogo />} 
+              style={{flex: 1, marginLeft: Spacing.sm, borderColor: theme.border}} 
+              icon={<AppleLogo color={isDark ? '#FFFFFF' : '#000000'} />} 
             />
           </View>
 
           <View style={styles.footerSection}>
-            <Text variant="bodyLarge" color="#8E8E93">Don&apos;t have an account? </Text>
-            <Text variant="bodyLarge" color="#16449C" style={{fontWeight: '600'}} onPress={() => router.push('/(auth)/profile-setup')}>
+            <Text variant="bodyLarge" color={theme.textSecondary}>Don&apos;t have an account? </Text>
+            <Text variant="bodyLarge" color={theme.primary} style={{fontWeight: '600'}} onPress={() => router.push('/(auth)/profile-setup')}>
               Sign Up
             </Text>
           </View>

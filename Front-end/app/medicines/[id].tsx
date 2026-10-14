@@ -5,8 +5,10 @@ import { Spacing, Layout } from '@/constants/theme';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useUser } from '@/context/UserContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function MedicineDetails() {
+  const { theme, isDark } = useTheme();
   const { id } = useLocalSearchParams();
   const { medicines, deleteMedicine } = useUser();
   const med = medicines.find(m => m.id === id);
@@ -41,57 +43,57 @@ export default function MedicineDetails() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Medicine Details" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content}>
         
         {/* Top Header Card */}
-        <Card style={styles.topCard}>
+        <Card style={[styles.topCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
           <View style={[styles.iconBox, {backgroundColor: med.color + '20'}]}>
             <MaterialCommunityIcons name={med.iconType as any} size={36} color={med.color} />
           </View>
-          <Text variant="h1" style={{marginLeft: Spacing.md, flex: 1}} numberOfLines={2}>{med.name}</Text>
+          <Text variant="h1" color={theme.text} style={{marginLeft: Spacing.md, flex: 1}} numberOfLines={2}>{med.name}</Text>
         </Card>
         
-        <View style={styles.detailsContainer}>
-          <View style={styles.row}>
-            <Text variant="bodyLarge" style={styles.label}>Type</Text>
-            <Text variant="bodyLarge" style={styles.value}>Tablet</Text>
+        <View style={[styles.detailsContainer, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
+          <View style={[styles.row, { borderBottomColor: theme.border }]}>
+            <Text variant="bodyLarge" color={theme.textSecondary} style={styles.label}>Type</Text>
+            <Text variant="bodyLarge" color={theme.text} style={styles.value}>Tablet</Text>
           </View>
-          <View style={styles.row}>
-            <Text variant="bodyLarge" style={styles.label}>Dose</Text>
-            <Text variant="bodyLarge" style={styles.value}>{med.dose}</Text>
+          <View style={[styles.row, { borderBottomColor: theme.border }]}>
+            <Text variant="bodyLarge" color={theme.textSecondary} style={styles.label}>Dose</Text>
+            <Text variant="bodyLarge" color={theme.text} style={styles.value}>{med.dose}</Text>
           </View>
-          <View style={styles.row}>
-            <Text variant="bodyLarge" style={styles.label}>Timing</Text>
-            <Text variant="bodyLarge" style={styles.value}>{med.timing}</Text>
+          <View style={[styles.row, { borderBottomColor: theme.border }]}>
+            <Text variant="bodyLarge" color={theme.textSecondary} style={styles.label}>Timing</Text>
+            <Text variant="bodyLarge" color={theme.text} style={styles.value}>{med.timing}</Text>
           </View>
-          <View style={styles.row}>
-            <Text variant="bodyLarge" style={styles.label}>Frequency</Text>
-            <Text variant="bodyLarge" style={styles.value}>{med.days}</Text>
+          <View style={[styles.row, { borderBottomColor: theme.border }]}>
+            <Text variant="bodyLarge" color={theme.textSecondary} style={styles.label}>Frequency</Text>
+            <Text variant="bodyLarge" color={theme.text} style={styles.value}>{med.days}</Text>
           </View>
-          <View style={styles.row}>
-            <Text variant="bodyLarge" style={styles.label}>Start Date</Text>
-            <Text variant="bodyLarge" style={styles.value}>15 Aug 2024</Text>
+          <View style={[styles.row, { borderBottomColor: theme.border }]}>
+            <Text variant="bodyLarge" color={theme.textSecondary} style={styles.label}>Start Date</Text>
+            <Text variant="bodyLarge" color={theme.text} style={styles.value}>15 Aug 2024</Text>
           </View>
           <View style={[styles.row, { borderBottomWidth: 0 }]}>
-            <Text variant="bodyLarge" style={styles.label}>Prescribed By</Text>
-            <Text variant="bodyLarge" style={styles.value}>Dr. Ahmad</Text>
+            <Text variant="bodyLarge" color={theme.textSecondary} style={styles.label}>Prescribed By</Text>
+            <Text variant="bodyLarge" color={theme.text} style={styles.value}>Dr. Ahmad</Text>
           </View>
         </View>
 
-        <View style={styles.instructionsContainer}>
-          <Text variant="bodyLarge" style={{fontWeight: '600', color: '#8E8E93', marginBottom: Spacing.sm}}>Instructions</Text>
-          <Text variant="bodyLarge" style={{color: '#4A6583', lineHeight: 24}}>
+        <View style={[styles.instructionsContainer, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0, borderRadius: 16, padding: Spacing.md }]}>
+          <Text variant="bodyLarge" color={theme.textSecondary} style={{fontWeight: '600', marginBottom: Spacing.sm}}>Instructions</Text>
+          <Text variant="bodyLarge" color={theme.text} style={{lineHeight: 24}}>
             Take with food. Do not skip doses. If stomach upset occurs, inform doctor.
           </Text>
         </View>
 
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.editBtn}>
-            <Text style={styles.editBtnText}>Edit</Text>
+          <TouchableOpacity style={[styles.editBtn, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: theme.primary }]}>
+            <Text style={[styles.editBtnText, { color: theme.primary }]}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+          <TouchableOpacity style={[styles.deleteBtn, { backgroundColor: isDark ? '#450A0A' : '#FEF2F2' }]} onPress={handleDelete}>
             <Text style={styles.deleteBtnText}>Delete</Text>
           </TouchableOpacity>
         </View>

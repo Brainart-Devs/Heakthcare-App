@@ -4,8 +4,10 @@ import { Text, Header, Card } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function DoctorInfoScreen() {
+  const { theme, isDark } = useTheme();
   const handleCallDoctor = () => {
     Alert.alert(
       'Call Doctor',
@@ -22,22 +24,22 @@ export default function DoctorInfoScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Doctor Information" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
         {/* Doctor Main Profile Card */}
-        <Card style={styles.doctorCard}>
+        <Card style={[styles.doctorCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.doctorHeader}>
-            <View style={styles.avatarCircle}>
-              <MaterialCommunityIcons name="doctor" size={44} color="#16449C" />
+            <View style={[styles.avatarCircle, { backgroundColor: isDark ? '#082F49' : '#F0F9FF' }]}>
+              <MaterialCommunityIcons name="doctor" size={44} color={theme.primary} />
             </View>
             <View style={styles.doctorMeta}>
-              <Text style={styles.doctorName}>Dr. Tariq Mahmood</Text>
-              <Text style={styles.doctorSpecialty}>Consultant Endocrinologist</Text>
+              <Text style={[styles.doctorName, { color: theme.text }]}>Dr. Tariq Mahmood</Text>
+              <Text style={[styles.doctorSpecialty, { color: theme.primary }]}>Consultant Endocrinologist</Text>
               <View style={styles.hospitalRow}>
-                <Feather name="map-pin" size={14} color="#8E8E93" />
-                <Text style={styles.hospitalText}>National Hospital, DHA Phase 5</Text>
+                <Feather name="map-pin" size={14} color={theme.textSecondary} />
+                <Text style={[styles.hospitalText, { color: theme.textSecondary }]}>National Hospital, DHA Phase 5</Text>
               </View>
             </View>
           </View>
@@ -49,101 +51,105 @@ export default function DoctorInfoScreen() {
               <Text style={styles.primaryActionText}>Call Doctor</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.secondaryActionBtn} onPress={handleBookAppointment} activeOpacity={0.8}>
-              <Feather name="calendar" size={18} color="#0EADF1" style={{ marginRight: 8 }} />
-              <Text style={styles.secondaryActionText}>Book Visit</Text>
+            <TouchableOpacity 
+              style={[styles.secondaryActionBtn, { backgroundColor: isDark ? '#082F49' : '#F0F9FF', borderColor: isDark ? '#0284C7' : '#BAE6FD' }]} 
+              onPress={handleBookAppointment} 
+              activeOpacity={0.8}
+            >
+              <Feather name="calendar" size={18} color={theme.primary} style={{ marginRight: 8 }} />
+              <Text style={[styles.secondaryActionText, { color: theme.primary }]}>Book Visit</Text>
             </TouchableOpacity>
           </View>
         </Card>
 
         {/* Contact & Clinic Details */}
-        <Text style={styles.sectionTitle}>Clinic & Contact</Text>
-        <Card style={styles.detailsCard}>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Clinic & Contact</Text>
+        <Card style={[styles.detailsCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.detailItem}>
-            <View style={styles.iconSquare}>
-              <Feather name="phone" size={18} color="#0EADF1" />
+            <View style={[styles.iconSquare, { backgroundColor: isDark ? '#082F49' : '#F0F9FF' }]}>
+              <Feather name="phone" size={18} color={theme.primary} />
             </View>
             <View style={styles.detailTextCol}>
-              <Text style={styles.detailLabel}>Direct Phone</Text>
-              <Text style={styles.detailValue}>+92 300 1234567</Text>
+              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Direct Phone</Text>
+              <Text style={[styles.detailValue, { color: theme.text }]}>+92 300 1234567</Text>
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
           <View style={styles.detailItem}>
-            <View style={styles.iconSquare}>
-              <Feather name="clock" size={18} color="#0EADF1" />
+            <View style={[styles.iconSquare, { backgroundColor: isDark ? '#082F49' : '#F0F9FF' }]}>
+              <Feather name="clock" size={18} color={theme.primary} />
             </View>
             <View style={styles.detailTextCol}>
-              <Text style={styles.detailLabel}>Visiting Hours</Text>
-              <Text style={styles.detailValue}>Mon – Fri: 04:00 PM – 08:00 PM</Text>
+              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Visiting Hours</Text>
+              <Text style={[styles.detailValue, { color: theme.text }]}>Mon – Fri: 04:00 PM – 08:00 PM</Text>
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
           <View style={styles.detailItem}>
-            <View style={styles.iconSquare}>
-              <Feather name="navigation" size={18} color="#0EADF1" />
+            <View style={[styles.iconSquare, { backgroundColor: isDark ? '#082F49' : '#F0F9FF' }]}>
+              <Feather name="navigation" size={18} color={theme.primary} />
             </View>
             <View style={styles.detailTextCol}>
-              <Text style={styles.detailLabel}>Address</Text>
-              <Text style={styles.detailValue}>Suite 402, Medical Enclave, Jail Road</Text>
+              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Address</Text>
+              <Text style={[styles.detailValue, { color: theme.text }]}>Suite 402, Medical Enclave, Jail Road</Text>
             </View>
           </View>
         </Card>
 
         {/* Next Appointment Card */}
-        <Text style={styles.sectionTitle}>Upcoming Appointment</Text>
-        <Card style={styles.appointmentCard}>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Upcoming Appointment</Text>
+        <Card style={[styles.appointmentCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.appointmentHeader}>
-            <View style={styles.calBadge}>
-              <Text style={styles.calMonth}>OCT</Text>
-              <Text style={styles.calDay}>25</Text>
+            <View style={[styles.calBadge, { backgroundColor: isDark ? '#082F49' : '#F0F9FF', borderColor: isDark ? '#0284C7' : '#BAE6FD' }]}>
+              <Text style={[styles.calMonth, { color: theme.primary }]}>OCT</Text>
+              <Text style={[styles.calDay, { color: theme.text }]}>25</Text>
             </View>
             <View style={styles.appointmentMeta}>
-              <Text style={styles.appointmentTitle}>Routine Diabetes Review</Text>
-              <Text style={styles.appointmentTime}>Friday at 05:30 PM (Confirmed)</Text>
+              <Text style={[styles.appointmentTitle, { color: theme.text }]}>Routine Diabetes Review</Text>
+              <Text style={[styles.appointmentTime, { color: theme.textSecondary }]}>Friday at 05:30 PM (Confirmed)</Text>
             </View>
           </View>
         </Card>
 
         {/* Last Appointment Card */}
-        <Text style={styles.sectionTitle}>Last Appointment</Text>
-        <Card style={styles.pastAppointmentCard}>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Last Appointment</Text>
+        <Card style={[styles.pastAppointmentCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.appointmentHeader}>
-            <View style={[styles.calBadge, styles.pastCalBadge]}>
-              <Text style={[styles.calMonth, styles.pastCalMonth]}>OCT</Text>
-              <Text style={[styles.calDay, styles.pastCalDay]}>01</Text>
+            <View style={[styles.calBadge, styles.pastCalBadge, { backgroundColor: isDark ? '#334155' : '#F1F5F9', borderColor: isDark ? '#475569' : '#E2E8F0' }]}>
+              <Text style={[styles.calMonth, styles.pastCalMonth, { color: theme.textSecondary }]}>OCT</Text>
+              <Text style={[styles.calDay, styles.pastCalDay, { color: theme.textSecondary }]}>01</Text>
             </View>
             <View style={styles.appointmentMeta}>
-              <Text style={styles.appointmentTitle}>Quarterly Diabetes & BP Check</Text>
-              <Text style={styles.appointmentTimePast}>Tuesday at 04:30 PM • Completed</Text>
-              <Text style={styles.appointmentNotes}>HbA1c: 6.8% • Dose adjusted to Sitaglu Met 50/850</Text>
+              <Text style={[styles.appointmentTitle, { color: theme.text }]}>Quarterly Diabetes & BP Check</Text>
+              <Text style={[styles.appointmentTimePast, { color: theme.textSecondary }]}>Tuesday at 04:30 PM • Completed</Text>
+              <Text style={[styles.appointmentNotes, { color: theme.primary }]}>HbA1c: 6.8% • Dose adjusted to Sitaglu Met 50/850</Text>
             </View>
           </View>
         </Card>
 
         {/* Doctor's Guidance Notes */}
-        <Text style={styles.sectionTitle}>Doctor&apos;s Clinical Notes</Text>
-        <Card style={styles.notesCard}>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Doctor&apos;s Clinical Notes</Text>
+        <Card style={[styles.notesCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderLeftColor: theme.primary }]}>
           <View style={styles.notesHeader}>
-            <Feather name="file-text" size={18} color="#16449C" style={{ marginRight: 8 }} />
-            <Text style={styles.notesTitle}>Latest Advice (Oct 1, 2024)</Text>
+            <Feather name="file-text" size={18} color={theme.primary} style={{ marginRight: 8 }} />
+            <Text style={[styles.notesTitle, { color: theme.primary }]}>Latest Advice (Oct 1, 2024)</Text>
           </View>
-          <Text style={styles.notesBody}>
+          <Text style={[styles.notesBody, { color: theme.text }]}>
             {'"Keep fasting blood sugar strictly between 90–125 mg/dL. Take Sitaglu Met 50/850 with dinner. Continue morning 20-minute light walk."'}
           </Text>
         </Card>
 
         {/* Secondary Doctor Button */}
         <TouchableOpacity 
-          style={styles.editDoctorBtn} 
+          style={[styles.editDoctorBtn, { backgroundColor: isDark ? '#082F49' : '#F0F9FF', borderColor: isDark ? '#0284C7' : '#BAE6FD' }]} 
           onPress={() => Alert.alert('Edit Doctor', 'Doctor details editing will synchronize with your clinic in the backend.')}
         >
-          <Feather name="edit-3" size={18} color="#16449C" style={{ marginRight: 8 }} />
-          <Text style={styles.editDoctorText}>Update Doctor Details</Text>
+          <Feather name="edit-3" size={18} color={theme.primary} style={{ marginRight: 8 }} />
+          <Text style={[styles.editDoctorText, { color: theme.primary }]}>Update Doctor Details</Text>
         </TouchableOpacity>
 
       </ScrollView>

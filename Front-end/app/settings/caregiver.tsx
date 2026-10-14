@@ -4,8 +4,10 @@ import { Text, Header, Input, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function CaregiverAccess() {
+  const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [invitee, setInvitee] = useState('');
   
@@ -30,30 +32,30 @@ export default function CaregiverAccess() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Caregiver Access" onBack={() => router.back()} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           
           {/* Top Banner */}
           <View style={styles.banner}>
-            <View style={styles.iconCircle}>
-              <Feather name="users" size={32} color="#0EADF1" />
+            <View style={[styles.iconCircle, { backgroundColor: isDark ? '#082F49' : '#E5FAFA' }]}>
+              <Feather name="users" size={32} color={theme.primary} />
             </View>
-            <Text style={styles.bannerTitle}>Share Your Health Journey</Text>
-            <Text style={styles.bannerText}>
+            <Text style={[styles.bannerTitle, { color: theme.text }]}>Share Your Health Journey</Text>
+            <Text style={[styles.bannerText, { color: theme.textSecondary }]}>
               Allow trusted family members or doctors to view your reports and receive safety alerts if you miss critical medicines.
             </Text>
           </View>
           
           {/* Invite Section */}
-          <Text style={styles.sectionHeader}>Invite a Caregiver</Text>
-          <View style={styles.card}>
+          <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>Invite a Caregiver</Text>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
             <Input 
               placeholder="Email or Phone Number" 
               value={invitee}
               onChangeText={setInvitee}
-              leftIcon={<Feather name="user-plus" size={20} color="#8E8E93" />}
+              leftIcon={<Feather name="user-plus" size={20} color={theme.textSecondary} />}
               style={{marginBottom: Spacing.sm}}
               autoCapitalize="none"
               keyboardType="email-address"
@@ -67,30 +69,30 @@ export default function CaregiverAccess() {
           </View>
 
           {/* Active Caregivers Section */}
-          <Text style={styles.sectionHeader}>Active Caregivers</Text>
-          <View style={styles.card}>
+          <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>Active Caregivers</Text>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
             <View style={styles.caregiverRow}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>AA</Text>
+              <View style={[styles.avatar, { backgroundColor: isDark ? '#064E3B' : '#E6F4EA' }]}>
+                <Text style={[styles.avatarText, { color: '#10B981' }]}>AA</Text>
               </View>
               <View style={styles.caregiverInfo}>
-                <Text style={styles.caregiverName}>Ali Arif</Text>
-                <Text style={styles.caregiverRole}>Son • Full Access</Text>
+                <Text style={[styles.caregiverName, { color: theme.text }]}>Ali Arif</Text>
+                <Text style={[styles.caregiverRole, { color: theme.textSecondary }]}>Son • Full Access</Text>
               </View>
               <TouchableOpacity style={styles.removeBtn} onPress={handleRemove}>
                 <Feather name="trash-2" size={20} color="#EF4444" />
               </TouchableOpacity>
             </View>
             
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
             
             <View style={styles.caregiverRow}>
-              <View style={[styles.avatar, {backgroundColor: '#E8E3F2'}]}>
-                <Text style={[styles.avatarText, {color: '#16449C'}]}>Dr</Text>
+              <View style={[styles.avatar, { backgroundColor: isDark ? '#082F49' : '#E8E3F2' }]}>
+                <Text style={[styles.avatarText, { color: theme.primary }]}>Dr</Text>
               </View>
               <View style={styles.caregiverInfo}>
-                <Text style={styles.caregiverName}>Dr. Ahmad</Text>
-                <Text style={styles.caregiverRole}>Physician • Reports Only</Text>
+                <Text style={[styles.caregiverName, { color: theme.text }]}>Dr. Ahmad</Text>
+                <Text style={[styles.caregiverRole, { color: theme.textSecondary }]}>Physician • Reports Only</Text>
               </View>
               <TouchableOpacity style={styles.removeBtn}>
                 <Feather name="trash-2" size={20} color="#EF4444" />
@@ -98,7 +100,7 @@ export default function CaregiverAccess() {
             </View>
           </View>
 
-          <Text style={styles.footerText}>
+          <Text style={[styles.footerText, { color: theme.textSecondary }]}>
             You remain in full control. You can revoke access from any caregiver at any time.
           </Text>
 

@@ -7,8 +7,10 @@ import { useUser } from '@/context/UserContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function AddMedicineScreen() {
+  const { theme, isDark } = useTheme();
   const { addMedicine } = useUser();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
@@ -103,7 +105,7 @@ export default function AddMedicineScreen() {
   const timeStr = timeObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Add Medicine" onBack={() => router.back()} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 100 }]}>
@@ -115,14 +117,14 @@ export default function AddMedicineScreen() {
             onChangeText={setName} 
             error={error ? ' ' : undefined} 
             rightIcon={
-              <TouchableOpacity onPress={handleOpenScanner} style={styles.qrBtn}>
-                <MaterialCommunityIcons name="qrcode-scan" size={20} color="#0EADF1" />
+              <TouchableOpacity onPress={handleOpenScanner} style={[styles.qrBtn, { backgroundColor: isDark ? '#082F49' : '#E5FAFA' }]}>
+                <MaterialCommunityIcons name="qrcode-scan" size={20} color={theme.primary} />
               </TouchableOpacity>
             }
           />
           <Input label="Dose" placeholder="e.g. 50 mcg or 1 Tablet" value={dose} onChangeText={setDose} error={error ? ' ' : undefined} />
           
-          <Text variant="bodyLarge" style={{marginTop: Spacing.md, marginBottom: Spacing.sm}}>Instruction / Meal Relation</Text>
+          <Text variant="bodyLarge" color={theme.text} style={{marginTop: Spacing.md, marginBottom: Spacing.sm}}>Instruction / Meal Relation</Text>
           <View style={styles.segmentedControl}>
             {timings.map(t => (
                <TouchableOpacity key={t} onPress={() => setTiming(t)}>
@@ -131,12 +133,12 @@ export default function AddMedicineScreen() {
             ))}
           </View>
 
-          <Text variant="bodyLarge" style={{marginTop: Spacing.xl, marginBottom: Spacing.sm}}>Schedule Time</Text>
+          <Text variant="bodyLarge" color={theme.text} style={{marginTop: Spacing.xl, marginBottom: Spacing.sm}}>Schedule Time</Text>
           <TouchableOpacity 
-            style={styles.timeInput}
+            style={[styles.timeInput, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: theme.border }]}
             onPress={() => setShowTimePicker(true)}
           >
-            <Text variant="body">{timeStr}</Text>
+            <Text variant="body" color={theme.text}>{timeStr}</Text>
           </TouchableOpacity>
 
           <Input label="Days" placeholder="e.g. Everyday, Monday" value={days} onChangeText={setDays} style={{marginTop: Spacing.md}} />
@@ -144,17 +146,17 @@ export default function AddMedicineScreen() {
           {showTimePicker && Platform.OS === 'ios' ? (
             <Modal transparent animationType="fade" visible={showTimePicker}>
               <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                <View style={{ backgroundColor: '#fff', paddingBottom: 40, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' }}>
+                <View style={{ backgroundColor: theme.card, paddingBottom: 40, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 16, borderBottomWidth: 1, borderBottomColor: theme.border }}>
                     <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                      <Text variant="bodyLarge" style={{ color: '#0EADF1', fontWeight: 'bold' }}>Done</Text>
+                      <Text variant="bodyLarge" style={{ color: theme.primary, fontWeight: 'bold' }}>Done</Text>
                     </TouchableOpacity>
                   </View>
                   <DateTimePicker
                     value={timeObj}
                     mode="time"
                     display="spinner"
-                    textColor="#000000"
+                    textColor={isDark ? '#FFFFFF' : '#000000'}
                     onChange={(event, selectedDate) => {
                       if (selectedDate) setTimeObj(selectedDate);
                     }}

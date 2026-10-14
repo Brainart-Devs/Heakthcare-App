@@ -5,8 +5,10 @@ import { Spacing } from '@/constants/theme';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useUser } from '@/context/UserContext';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function HistoryDetailScreen() {
+  const { theme, isDark } = useTheme();
   const { id } = useLocalSearchParams();
   const { history, user, deleteHistoryRecord } = useUser();
   
@@ -46,31 +48,31 @@ export default function HistoryDetailScreen() {
   const isSugar = record.type === 'Sugar';
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Reading Details" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content}>
         
         <View style={styles.heroSection}>
-          <View style={styles.iconCircle}>
+          <View style={[styles.iconCircle, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
             <MaterialCommunityIcons 
               name={isSugar ? "water" : "heart-pulse"} 
               size={36} 
-              color={isSugar ? "#FF4B4B" : "#0EADF1"} 
+              color={isSugar ? "#FF4B4B" : theme.primary} 
             />
           </View>
-          <Text variant="h2" style={{ marginVertical: Spacing.sm }}>
+          <Text variant="h2" color={theme.text} style={{ marginVertical: Spacing.sm }}>
             {isSugar ? 'Blood Sugar' : 'Blood Pressure'}
           </Text>
-          <Text variant="body" color="#8E8E93" style={{ marginBottom: Spacing.md }}>
+          <Text variant="body" color={theme.textSecondary} style={{ marginBottom: Spacing.md }}>
             {record.date} • {record.time}
           </Text>
         </View>
 
-        <Card style={styles.mainCard}>
+        <Card style={[styles.mainCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
           <View style={{ alignItems: 'center' }}>
-            <Text style={styles.hugeMetric}>
+            <Text style={[styles.hugeMetric, { color: theme.text }]}>
               {record.value}
-              {isSugar && <Text variant="bodyLarge" color="#8E8E93"> mg/dL</Text>}
+              {isSugar && <Text variant="bodyLarge" color={theme.textSecondary}> mg/dL</Text>}
             </Text>
             <View style={{ marginTop: Spacing.sm }}>
               <Badge 
@@ -81,44 +83,44 @@ export default function HistoryDetailScreen() {
           </View>
         </Card>
 
-        <Card style={styles.detailsCard}>
+        <Card style={[styles.detailsCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
           <View style={styles.row}>
-            <Text variant="body" color="#8E8E93" style={{ flex: 1 }}>Patient</Text>
-            <Text variant="bodyLarge" style={{ fontWeight: '600' }}>{user.name}</Text>
+            <Text variant="body" color={theme.textSecondary} style={{ flex: 1 }}>Patient</Text>
+            <Text variant="bodyLarge" color={theme.text} style={{ fontWeight: '600' }}>{user.name}</Text>
           </View>
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
           
           <View style={styles.row}>
-            <Text variant="body" color="#8E8E93" style={{ flex: 1 }}>Period</Text>
-            <Text variant="bodyLarge" style={{ fontWeight: '600' }}>{record.period || 'N/A'}</Text>
+            <Text variant="body" color={theme.textSecondary} style={{ flex: 1 }}>Period</Text>
+            <Text variant="bodyLarge" color={theme.text} style={{ fontWeight: '600' }}>{record.period || 'N/A'}</Text>
           </View>
 
           {!isSugar && (
             <>
-              <View style={styles.divider} />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <View style={styles.row}>
-                <Text variant="body" color="#8E8E93" style={{ flex: 1 }}>Systolic</Text>
-                <Text variant="bodyLarge" style={{ fontWeight: '600' }}>{record.value.split('/')[0]} mmHg</Text>
+                <Text variant="body" color={theme.textSecondary} style={{ flex: 1 }}>Systolic</Text>
+                <Text variant="bodyLarge" color={theme.text} style={{ fontWeight: '600' }}>{record.value.split('/')[0]} mmHg</Text>
               </View>
-              <View style={styles.divider} />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <View style={styles.row}>
-                <Text variant="body" color="#8E8E93" style={{ flex: 1 }}>Diastolic</Text>
-                <Text variant="bodyLarge" style={{ fontWeight: '600' }}>{record.value.split('/')[1]} mmHg</Text>
+                <Text variant="body" color={theme.textSecondary} style={{ flex: 1 }}>Diastolic</Text>
+                <Text variant="bodyLarge" color={theme.text} style={{ fontWeight: '600' }}>{record.value.split('/')[1]} mmHg</Text>
               </View>
-              <View style={styles.divider} />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <View style={styles.row}>
-                <Text variant="body" color="#8E8E93" style={{ flex: 1 }}>Pulse</Text>
-                <Text variant="bodyLarge" style={{ fontWeight: '600' }}>{record.pulse || '--'} bpm</Text>
+                <Text variant="body" color={theme.textSecondary} style={{ flex: 1 }}>Pulse</Text>
+                <Text variant="bodyLarge" color={theme.text} style={{ fontWeight: '600' }}>{record.pulse || '--'} bpm</Text>
               </View>
             </>
           )}
 
           {record.symptoms && record.symptoms.length > 0 && (
             <>
-              <View style={styles.divider} />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <View style={styles.rowTop}>
-                <Text variant="body" color="#8E8E93" style={{ flex: 1 }}>Symptoms</Text>
-                <Text variant="bodyLarge" style={{ flex: 2, textAlign: 'right', fontWeight: '500' }}>
+                <Text variant="body" color={theme.textSecondary} style={{ flex: 1 }}>Symptoms</Text>
+                <Text variant="bodyLarge" color={theme.text} style={{ flex: 2, textAlign: 'right', fontWeight: '500' }}>
                   {record.symptoms.join(', ')}
                 </Text>
               </View>
@@ -127,10 +129,10 @@ export default function HistoryDetailScreen() {
 
           {record.notes ? (
             <>
-              <View style={styles.divider} />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <View style={styles.rowTop}>
-                <Text variant="body" color="#8E8E93" style={{ flex: 1 }}>Notes</Text>
-                <Text variant="bodyLarge" style={{ flex: 2, textAlign: 'right' }}>{record.notes}</Text>
+                <Text variant="body" color={theme.textSecondary} style={{ flex: 1 }}>Notes</Text>
+                <Text variant="bodyLarge" color={theme.text} style={{ flex: 2, textAlign: 'right' }}>{record.notes}</Text>
               </View>
             </>
           ) : null}

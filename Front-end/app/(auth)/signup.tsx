@@ -3,10 +3,12 @@ import { View, SafeAreaView, StyleSheet, ScrollView, KeyboardAvoidingView, Platf
 import { Button, Header, Input } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function SignupScreen() {
+  const { theme } = useTheme();
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Create Account" onBack={() => router.back()} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}><ScrollView contentContainerStyle={[styles.content, { paddingBottom: 100 }]}>
         <Input placeholder="Full Name" label="Full Name" />

@@ -55,9 +55,12 @@ interface UserContextType {
   deleteMedicine: (id: string) => void;
 }
 
+const getTodayKey = () => new Date().toISOString().split('T')[0];
+const getTodayFormatted = () => new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
 const initialMedicines: Medicine[] = [
-  { id: 'm1', name: 'Thyroxine', dose: '50 mcg', timing: 'Before Breakfast', time: '7:00 AM', days: 'Everyday', iconType: 'pill', color: '#10B981', takenStatus: { '2024-10-01': true } },
-  { id: 'm2', name: 'Diamicron MR', dose: '30 mg', timing: 'With Breakfast', time: '8:00 AM', days: 'Everyday', iconType: 'bottle-tonic-plus', color: '#F59E0B', takenStatus: { '2024-10-01': true } },
+  { id: 'm1', name: 'Thyroxine', dose: '50 mcg', timing: 'Before Breakfast', time: '7:00 AM', days: 'Everyday', iconType: 'pill', color: '#10B981', takenStatus: { [getTodayKey()]: true, '2024-10-01': true } },
+  { id: 'm2', name: 'Diamicron MR', dose: '30 mg', timing: 'With Breakfast', time: '8:00 AM', days: 'Everyday', iconType: 'bottle-tonic-plus', color: '#F59E0B', takenStatus: { [getTodayKey()]: true, '2024-10-01': true } },
   { id: 'm3', name: 'Dapa', dose: '10 mg', timing: 'After Breakfast', time: '8:00 AM', days: 'Everyday', iconType: 'pill-multiple', color: '#EC4899', takenStatus: {} },
   { id: 'm4', name: 'Sitaglu Met 50/850', dose: 'With Meal', timing: 'With Meal', time: '1:00 PM', days: 'Everyday', iconType: 'medical-bag', color: '#3B82F6', takenStatus: {} },
   { id: 'm5', name: 'Telsarta', dose: '40 mg', timing: 'After Dinner', time: '8:30 PM', days: 'Everyday', iconType: 'pill', color: '#EF4444', takenStatus: {} },
@@ -84,7 +87,7 @@ const initialHistory: HistoryRecord[] = [
   {
     id: '1',
     type: 'BP',
-    date: '01 Oct 2024',
+    date: getTodayFormatted(),
     time: '08:00 AM',
     value: '136/82',
     label: 'Good',
@@ -93,7 +96,7 @@ const initialHistory: HistoryRecord[] = [
   {
     id: '2',
     type: 'Sugar',
-    date: '01 Oct 2024',
+    date: getTodayFormatted(),
     time: '07:30 AM',
     value: '128',
     label: 'Normal',

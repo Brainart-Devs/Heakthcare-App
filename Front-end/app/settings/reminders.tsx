@@ -3,8 +3,10 @@ import { View, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity, Switch, A
 import { Text, Header, Card, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
+import * as Speech from 'expo-speech';
+import { useTheme } from '@/context/ThemeContext';
 
 const AUDIO_ENGINE_HTML = `
 <!DOCTYPE html>
@@ -31,6 +33,41 @@ const AUDIO_ENGINE_HTML = `
   // Pre-unlock audio
   document.addEventListener('touchstart', function() { getContext(); }, false);
   document.addEventListener('click', function() { getContext(); }, false);
+
+  window.speakVoice = function(gender) {
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        var msg = new SpeechSynthesisUtterance("It is time to take your medicine.");
+        msg.rate = 0.88;
+        var allVoices = window.speechSynthesis.getVoices() || [];
+        if (gender === 'Male') {
+          msg.pitch = 0.82;
+          var mv = allVoices.find(function(v) {
+            var n = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
+            return (n.includes('male') || n.includes('daniel') || n.includes('david') || n.includes('george') || n.includes('alex') || n.includes('guy') || n.includes('fred')) && !n.includes('female');
+          });
+          if (mv) msg.voice = mv;
+        } else {
+          msg.pitch = 1.15;
+          var fv = allVoices.find(function(v) {
+            var n = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
+            return n.includes('female') || n.includes('samantha') || n.includes('karen') || n.includes('zira') || n.includes('victoria') || n.includes('susan') || n.includes('moira');
+          });
+          if (fv) msg.voice = fv;
+        }
+        window.speechSynthesis.speak(msg);
+      }
+    } catch(e) {}
+  };
+
+  window.stopAll = function() {
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    } catch(e) {}
+  };
 
   window.playTone = function(toneName) {
     try {
@@ -163,37 +200,98 @@ const AUDIO_ENGINE_HTML = `
 `;
 
 export default function MedicineRemindersScreen() {
+  const { theme, isDark } = useTheme();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [earlyAlert, setEarlyAlert] = useState(true);
   const [persistentAlarm, setPersistentAlarm] = useState(true);
   const [caregiverEscalation, setCaregiverEscalation] = useState(true);
-  const [selectedTone, setSelectedTone] = useState('Gentle Chime');
+  const [selectedTone, setSelectedTone] = useState('Female Voice');
   const [playingTone, setPlayingTone] = useState<string | null>(null);
+  const [voices, setVoices] = useState<Speech.Voice[]>([]);
 
   const webViewRef = useRef<any>(null);
   const timeoutRef = useRef<any>(null);
 
   const tones = [
-    'Gentle Chime',
-    'Calm Flute',
-    'Morning Harp',
-    'Crystal Marimba',
-    'Pill Melody',
-    'High Bell',
-    'Classic Ring',
-    'Zen Singing Bowl'
+    { 
+      id: 'Female Voice', 
+      name: 'Female Voice', 
+      subtitle: '“It is time to take your medicine.”',
+      isVoice: true,
+      gender: 'Female' as const,
+    },
+    { 
+      id: 'Male Voice', 
+      name: 'Male Voice', 
+      subtitle: '“It is time to take your medicine.”',
+      isVoice: true,
+      gender: 'Male' as const,
+    },
+    { 
+      id: 'Gentle Chime', 
+      name: 'Gentle Chime', 
+      subtitle: 'Ascending bell harmony',
+      isVoice: false,
+    },
+    { 
+      id: 'Calm Flute', 
+      name: 'Calm Flute', 
+      subtitle: 'Soft woodwind melody',
+      isVoice: false,
+    },
+    { 
+      id: 'Morning Harp', 
+      name: 'Morning Harp', 
+      subtitle: 'Gentle ascending harp strings',
+      isVoice: false,
+    },
+    { 
+      id: 'Crystal Marimba', 
+      name: 'Crystal Marimba', 
+      subtitle: 'Warm acoustic resonance',
+      isVoice: false,
+    },
+    { 
+      id: 'Pill Melody', 
+      name: 'Pill Melody', 
+      subtitle: 'Cheerful upbeat reminder chime',
+      isVoice: false,
+    },
+    { 
+      id: 'High Bell', 
+      name: 'High Bell', 
+      subtitle: 'Clear, high-visibility alert chime',
+      isVoice: false,
+    },
+    { 
+      id: 'Classic Ring', 
+      name: 'Classic Ring', 
+      subtitle: 'Traditional alarm clock chime',
+      isVoice: false,
+    },
+    { 
+      id: 'Zen Singing Bowl', 
+      name: 'Zen Singing Bowl', 
+      subtitle: 'Deep calming meditative tone',
+      isVoice: false,
+    }
   ];
 
   useEffect(() => {
+    Speech.getAvailableVoicesAsync()
+      .then(vList => setVoices(vList))
+      .catch(() => {});
+
     return () => {
+      Speech.stop();
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
   }, []);
 
-  const playSound = (toneName: string) => {
+  const playSound = async (toneId: string) => {
     if (!soundEnabled) {
       Alert.alert(
         'Sound Is Turned Off',
@@ -202,51 +300,123 @@ export default function MedicineRemindersScreen() {
       return;
     }
 
-    // Physical vibration patterns tailored to each tune
+    // Stop ongoing speech & sounds
+    try {
+      await Speech.stop();
+    } catch (e) {}
+    webViewRef.current?.injectJavaScript(`window.stopAll && window.stopAll(); true;`);
+
+    const toneItem = tones.find(t => t.id === toneId);
+
+    // Physical vibration patterns tailored to each tune & voice
     if (vibrationEnabled) {
-      switch (toneName) {
-        case 'Gentle Chime':
-          Vibration.vibrate([0, 60, 80, 60]);
-          break;
-        case 'Calm Flute':
-          Vibration.vibrate([0, 100, 100, 150]);
-          break;
-        case 'Morning Harp':
-          Vibration.vibrate([0, 50, 50, 50, 50, 50]);
-          break;
-        case 'Crystal Marimba':
-          Vibration.vibrate([0, 80, 80, 80]);
-          break;
-        case 'Pill Melody':
-          Vibration.vibrate([0, 70, 60, 70, 60, 100]);
-          break;
-        case 'High Bell':
-          Vibration.vibrate([0, 180]);
-          break;
-        case 'Classic Ring':
-          Vibration.vibrate([0, 120, 60, 120, 60, 120]);
-          break;
-        case 'Zen Singing Bowl':
-          Vibration.vibrate([0, 250]);
-          break;
-        default:
-          Vibration.vibrate(100);
+      if (toneItem?.isVoice) {
+        Vibration.vibrate([0, 120, 80, 140]);
+      } else {
+        switch (toneId) {
+          case 'Gentle Chime':
+            Vibration.vibrate([0, 60, 80, 60]);
+            break;
+          case 'Calm Flute':
+            Vibration.vibrate([0, 100, 100, 150]);
+            break;
+          case 'Morning Harp':
+            Vibration.vibrate([0, 50, 50, 50, 50, 50]);
+            break;
+          case 'Crystal Marimba':
+            Vibration.vibrate([0, 80, 80, 80]);
+            break;
+          case 'Pill Melody':
+            Vibration.vibrate([0, 70, 60, 70, 60, 100]);
+            break;
+          case 'High Bell':
+            Vibration.vibrate([0, 180]);
+            break;
+          case 'Classic Ring':
+            Vibration.vibrate([0, 120, 60, 120, 60, 120]);
+            break;
+          case 'Zen Singing Bowl':
+            Vibration.vibrate([0, 250]);
+            break;
+          default:
+            Vibration.vibrate(100);
+        }
       }
     }
 
-    setPlayingTone(toneName);
-
-    // Trigger speaker sound playback via Web Audio API inside invisible engine
-    const script = `window.playTone && window.playTone('${toneName}'); true;`;
-    webViewRef.current?.injectJavaScript(script);
+    setPlayingTone(toneId);
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    timeoutRef.current = setTimeout(() => {
-      setPlayingTone(null);
-    }, 1800);
+    if (toneItem?.isVoice) {
+      const text = 'It is time to take your medicine.';
+      let voiceIdentifier: string | undefined;
+
+      if (voices.length > 0) {
+        if (toneItem.gender === 'Male') {
+          const maleVoice = voices.find(v => {
+            const n = (v.name + ' ' + v.identifier).toLowerCase();
+            return (
+              (n.includes('male') ||
+                n.includes('daniel') ||
+                n.includes('david') ||
+                n.includes('george') ||
+                n.includes('aaron') ||
+                n.includes('alex') ||
+                n.includes('guy') ||
+                n.includes('fred')) &&
+              !n.includes('female')
+            );
+          });
+          if (maleVoice) voiceIdentifier = maleVoice.identifier;
+        } else {
+          const femaleVoice = voices.find(v => {
+            const n = (v.name + ' ' + v.identifier).toLowerCase();
+            return (
+              n.includes('female') ||
+              n.includes('samantha') ||
+              n.includes('karen') ||
+              n.includes('zira') ||
+              n.includes('victoria') ||
+              n.includes('susan') ||
+              n.includes('moira') ||
+              n.includes('tessa')
+            );
+          });
+          if (femaleVoice) voiceIdentifier = femaleVoice.identifier;
+        }
+      }
+
+      try {
+        Speech.speak(text, {
+          language: 'en-US',
+          pitch: toneItem.gender === 'Male' ? 0.85 : 1.15,
+          rate: 0.88,
+          voice: voiceIdentifier,
+          onDone: () => setPlayingTone(null),
+          onStopped: () => setPlayingTone(null),
+          onError: () => setPlayingTone(null),
+        });
+      } catch (err) {
+        // Fallback to WebView speech synthesis
+        const script = `window.speakVoice && window.speakVoice('${toneItem.gender}'); true;`;
+        webViewRef.current?.injectJavaScript(script);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        setPlayingTone(null);
+      }, 3000);
+    } else {
+      // Trigger speaker sound playback via Web Audio API inside invisible engine
+      const script = `window.playTone && window.playTone('${toneId}'); true;`;
+      webViewRef.current?.injectJavaScript(script);
+
+      timeoutRef.current = setTimeout(() => {
+        setPlayingTone(null);
+      }, 1800);
+    }
   };
 
   const handleSave = () => {
@@ -254,7 +424,7 @@ export default function MedicineRemindersScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Medicine Reminders" onBack={() => router.back()} />
       
       {/* Invisible speaker audio engine */}
@@ -272,150 +442,206 @@ export default function MedicineRemindersScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
         {/* Top Info Banner */}
-        <View style={styles.banner}>
-          <View style={styles.bannerIcon}>
-            <Feather name="bell" size={28} color="#0EADF1" />
+        <View style={[styles.banner, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <View style={[styles.bannerIcon, { backgroundColor: isDark ? '#082F49' : '#F0F9FF' }]}>
+            <Feather name="bell" size={28} color={theme.primary} />
           </View>
           <View style={styles.bannerTextCol}>
-            <Text style={styles.bannerTitle}>Never Miss a Pill</Text>
-            <Text style={styles.bannerSubtitle}>
+            <Text style={[styles.bannerTitle, { color: theme.text }]}>Never Miss a Pill</Text>
+            <Text style={[styles.bannerSubtitle, { color: theme.textSecondary }]}>
               Loud, persistent alerts designed to make sure medications are taken on time.
             </Text>
           </View>
         </View>
 
         {/* Alert Delivery Controls */}
-        <Text style={styles.sectionTitle}>Alert Settings</Text>
-        <Card style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Alert Settings</Text>
+        <Card style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.switchRow}>
             <View style={styles.switchLabelCol}>
-              <Text style={styles.rowTitle}>Sound Alerts</Text>
-              <Text style={styles.rowSubtitle}>Play audio tone at scheduled dose time</Text>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>Sound Alerts</Text>
+              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>Play audio tone at scheduled dose time</Text>
             </View>
             <Switch 
               value={soundEnabled} 
               onValueChange={setSoundEnabled}
-              trackColor={{ false: '#E5E7EB', true: '#BAE6FD' }}
-              thumbColor={soundEnabled ? '#0EADF1' : '#9CA3AF'}
+              trackColor={{ false: isDark ? '#334155' : '#E5E7EB', true: isDark ? '#0284C7' : '#BAE6FD' }}
+              thumbColor={soundEnabled ? theme.primary : '#9CA3AF'}
             />
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
           <View style={styles.switchRow}>
             <View style={styles.switchLabelCol}>
-              <Text style={styles.rowTitle}>Vibration</Text>
-              <Text style={styles.rowSubtitle}>Vibrate phone during dose alert</Text>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>Vibration</Text>
+              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>Vibrate phone during dose alert</Text>
             </View>
             <Switch 
               value={vibrationEnabled} 
               onValueChange={setVibrationEnabled}
-              trackColor={{ false: '#E5E7EB', true: '#BAE6FD' }}
-              thumbColor={vibrationEnabled ? '#0EADF1' : '#9CA3AF'}
+              trackColor={{ false: isDark ? '#334155' : '#E5E7EB', true: isDark ? '#0284C7' : '#BAE6FD' }}
+              thumbColor={vibrationEnabled ? theme.primary : '#9CA3AF'}
             />
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
           <View style={styles.switchRow}>
             <View style={styles.switchLabelCol}>
-              <Text style={styles.rowTitle}>Pre-Dose Warning (15 Min)</Text>
-              <Text style={styles.rowSubtitle}>Notifies you 15 minutes before mealtime</Text>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>Pre-Dose Warning (15 Min)</Text>
+              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>Notifies you 15 minutes before mealtime</Text>
             </View>
             <Switch 
               value={earlyAlert} 
               onValueChange={setEarlyAlert}
-              trackColor={{ false: '#E5E7EB', true: '#BAE6FD' }}
-              thumbColor={earlyAlert ? '#0EADF1' : '#9CA3AF'}
+              trackColor={{ false: isDark ? '#334155' : '#E5E7EB', true: isDark ? '#0284C7' : '#BAE6FD' }}
+              thumbColor={earlyAlert ? theme.primary : '#9CA3AF'}
             />
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
           <View style={styles.switchRow}>
             <View style={styles.switchLabelCol}>
-              <Text style={styles.rowTitle}>Persistent Repeating Alarm</Text>
-              <Text style={styles.rowSubtitle}>Repeats every 5 mins until marked &apos;Taken&apos;</Text>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>Persistent Repeating Alarm</Text>
+              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>Repeats every 5 mins until marked &apos;Taken&apos;</Text>
             </View>
             <Switch 
               value={persistentAlarm} 
               onValueChange={setPersistentAlarm}
-              trackColor={{ false: '#E5E7EB', true: '#BAE6FD' }}
-              thumbColor={persistentAlarm ? '#0EADF1' : '#9CA3AF'}
+              trackColor={{ false: isDark ? '#334155' : '#E5E7EB', true: isDark ? '#0284C7' : '#BAE6FD' }}
+              thumbColor={persistentAlarm ? theme.primary : '#9CA3AF'}
             />
           </View>
         </Card>
 
         {/* Tone Selection */}
-        <Text style={styles.sectionTitle}>Alert Tone ({tones.length} Available)</Text>
-        <Card style={styles.card}>
-          {tones.map((tone, idx) => {
-            const isSelected = selectedTone === tone;
-            const isThisPlaying = playingTone === tone;
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Alert Tone & Spoken Voice ({tones.length} Available)</Text>
+        <Card style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
+          {tones.map((toneItem, idx) => {
+            const isSelected = selectedTone === toneItem.id;
+            const isThisPlaying = playingTone === toneItem.id;
             return (
-              <React.Fragment key={tone}>
+              <React.Fragment key={toneItem.id}>
                 <TouchableOpacity 
-                  style={[styles.toneRow, isSelected && styles.toneRowSelected]} 
+                  style={[
+                    styles.toneRow, 
+                    isSelected && { backgroundColor: isDark ? '#082F49' : '#F0F9FF' }
+                  ]} 
                   onPress={() => {
-                    setSelectedTone(tone);
-                    playSound(tone);
+                    setSelectedTone(toneItem.id);
+                    playSound(toneItem.id);
                   }}
                   activeOpacity={0.7}
                 >
                   <View style={styles.toneLeftCol}>
-                    <Text style={[styles.toneName, isSelected && styles.toneNameSelected]}>{tone}</Text>
-                    {isThisPlaying && (
-                      <View style={styles.playingBadge}>
-                        <Feather name="volume-2" size={12} color="#059669" />
-                        <Text style={styles.playingBadgeText}>Playing...</Text>
+                    <View style={[
+                      styles.iconCircle,
+                      { backgroundColor: toneItem.isVoice ? (isDark ? '#312E81' : '#EEF2FF') : (isDark ? '#1E293B' : '#F1F5F9') }
+                    ]}>
+                      {toneItem.isVoice ? (
+                        <MaterialCommunityIcons 
+                          name="account-voice" 
+                          size={20} 
+                          color={toneItem.isVoice ? (isDark ? '#A5B4FC' : '#4F46E5') : theme.primary} 
+                        />
+                      ) : (
+                        <Feather 
+                          name="music" 
+                          size={16} 
+                          color={theme.primary} 
+                        />
+                      )}
+                    </View>
+                    <View style={styles.toneTextCol}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[
+                          styles.toneName, 
+                          { color: theme.text },
+                          isSelected && { color: theme.primary, fontWeight: '700' }
+                        ]}>{toneItem.name}</Text>
+                        {toneItem.isVoice && (
+                          <View style={[styles.voiceTag, { backgroundColor: isDark ? '#312E81' : '#EEF2FF' }]}>
+                            <Text style={[styles.voiceTagText, { color: isDark ? '#C7D2FE' : '#4F46E5' }]}>Spoken Voice</Text>
+                          </View>
+                        )}
                       </View>
-                    )}
+                      <Text style={[
+                        styles.toneSubtitle, 
+                        { color: isSelected ? theme.primary : theme.textSecondary }
+                      ]}>
+                        {toneItem.subtitle}
+                      </Text>
+                      {isThisPlaying && (
+                        <View style={[styles.playingBadge, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5', marginTop: 4 }]}>
+                          <Feather name="volume-2" size={12} color={isDark ? '#34D399' : '#059669'} />
+                          <Text style={[styles.playingBadgeText, { color: isDark ? '#34D399' : '#059669' }]}>
+                            {toneItem.isVoice ? 'Speaking Voice...' : 'Playing Chime...'}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
-                  <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
-                    {isSelected && <View style={styles.radioInner} />}
+                  <View style={[
+                    styles.radioCircle, 
+                    { borderColor: isDark ? '#475569' : '#D1D5DB' },
+                    isSelected && { borderColor: theme.primary }
+                  ]}>
+                    {isSelected && <View style={[styles.radioInner, { backgroundColor: theme.primary }]} />}
                   </View>
                 </TouchableOpacity>
-                {idx < tones.length - 1 && <View style={styles.divider} />}
+                {idx < tones.length - 1 && <View style={[styles.divider, { backgroundColor: theme.border }]} />}
               </React.Fragment>
             );
           })}
 
           <TouchableOpacity 
-            style={[styles.testBtn, playingTone === selectedTone && styles.testBtnPlaying]} 
+            style={[
+              styles.testBtn, 
+              { backgroundColor: isDark ? '#082F49' : '#F0F9FF', borderColor: isDark ? '#0284C7' : '#BAE6FD' },
+              playingTone === selectedTone && { borderColor: '#10B981', backgroundColor: isDark ? '#064E3B' : '#ECFDF5' }
+            ]} 
             onPress={() => playSound(selectedTone)} 
             activeOpacity={0.8}
           >
             <Feather 
               name={playingTone === selectedTone ? "volume-2" : "volume-1"} 
               size={18} 
-              color={playingTone === selectedTone ? "#059669" : "#0EADF1"} 
+              color={playingTone === selectedTone ? (isDark ? "#34D399" : "#059669") : theme.primary} 
               style={{ marginRight: 8 }} 
             />
-            <Text style={[styles.testBtnText, playingTone === selectedTone && { color: '#059669' }]}>
-              {playingTone === selectedTone ? `Playing "${selectedTone}"...` : `Test "${selectedTone}"`}
+            <Text style={[
+              styles.testBtnText, 
+              { color: theme.primary },
+              playingTone === selectedTone && { color: isDark ? '#34D399' : '#059669' }
+            ]}>
+              {playingTone === selectedTone 
+                ? (selectedTone.includes('Voice') ? `Speaking "${selectedTone}"...` : `Playing "${selectedTone}"...`) 
+                : `Test "${selectedTone}"`}
             </Text>
           </TouchableOpacity>
 
           <View style={styles.unmuteHint}>
-            <Feather name="volume-x" size={14} color="#8E8E93" style={{ marginRight: 6 }} />
-            <Text style={styles.unmuteHintText}>
+            <Feather name="volume-x" size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
+            <Text style={[styles.unmuteHintText, { color: theme.textSecondary }]}>
               Ensure your iPhone physical side-switch is not set to Silent to hear the speaker.
             </Text>
           </View>
         </Card>
 
         {/* Safety Escalation */}
-        <Text style={styles.sectionTitle}>Caregiver Safety Sync</Text>
-        <Card style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Caregiver Safety Sync</Text>
+        <Card style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.switchRow}>
             <View style={styles.switchLabelCol}>
-              <Text style={styles.rowTitle}>Notify Caregiver on Missed Dose</Text>
-              <Text style={styles.rowSubtitle}>Sends SMS alert to Ali Arif if dose is missed by 45 mins</Text>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>Notify Caregiver on Missed Dose</Text>
+              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>Sends SMS alert to Ali Arif if dose is missed by 45 mins</Text>
             </View>
             <Switch 
               value={caregiverEscalation} 
               onValueChange={setCaregiverEscalation}
-              trackColor={{ false: '#E5E7EB', true: '#BAE6FD' }}
+              trackColor={{ false: isDark ? '#334155' : '#E5E7EB', true: isDark ? '#0284C7' : '#BAE6FD' }}
               thumbColor={caregiverEscalation ? '#10B981' : '#9CA3AF'}
             />
           </View>
@@ -530,7 +756,33 @@ const styles = StyleSheet.create({
   toneLeftCol: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    flex: 1,
+    marginRight: 12
+  },
+  iconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10
+  },
+  toneTextCol: {
+    flex: 1
+  },
+  toneSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+    lineHeight: 16
+  },
+  voiceTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6
+  },
+  voiceTagText: {
+    fontSize: 10,
+    fontWeight: '700'
   },
   toneName: {
     fontSize: 16,

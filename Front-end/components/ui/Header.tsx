@@ -14,8 +14,8 @@ export function Header({ title, onBack, rightElement }: HeaderProps) {
   const theme = useThemeColor();
 
   return (
-    <SafeAreaView style={{ backgroundColor: '#FFFFFF' }}>
-      <View style={[styles.container, { borderBottomColor: '#F0F0F3' }]}>
+    <SafeAreaView style={{ backgroundColor: theme.card }}>
+      <View style={[styles.container, { borderBottomColor: theme.border }]}>
         <View style={styles.left}>
           {onBack && (
             <TouchableOpacity 
@@ -30,7 +30,7 @@ export function Header({ title, onBack, rightElement }: HeaderProps) {
         </View>
 
         <View style={styles.center}>
-          <Text variant="h3" align="center" numberOfLines={1} color="#1C1C1E">
+          <Text variant="h3" align="center" numberOfLines={1} color={theme.text}>
             {title}
           </Text>
         </View>

@@ -12,7 +12,12 @@ export const mockMedicines = [
   { id: '4', name: 'Telsarta', dose: '40 mg', timing: 'After Dinner', time: '8:30 PM', status: 'Pending' }
 ];
 
-export const mockReadings = {
-  sugar: { value: 128, label: 'Normal', date: '01 Oct 2024' },
-  bp: { systolic: 136, diastolic: 82, pulse: 76, label: 'Good', date: '01 Oct 2024' },
+const getTodayDateStr = () => {
+  return new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
+
+export const mockReadings = {
+  sugar: { value: 128, label: 'Normal', get date() { return getTodayDateStr(); } },
+  bp: { systolic: 136, diastolic: 82, pulse: 76, label: 'Good', get date() { return getTodayDateStr(); } },
+};
+

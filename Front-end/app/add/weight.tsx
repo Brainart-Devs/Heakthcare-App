@@ -3,12 +3,18 @@ import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, SafeAreaV
 import { Text, Button, Header, Input } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function AddWeightScreen() {
+  const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [weight, setWeight] = useState('');
-  const [date, setDate] = useState('01 Oct 2024');
-  const [time, setTime] = useState('07:30 AM');
+  
+  const getInitialDate = () => new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const getInitialTime = () => new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  const [date, setDate] = useState(getInitialDate);
+  const [time, setTime] = useState(getInitialTime);
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   
@@ -31,7 +37,7 @@ export default function AddWeightScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Add Weight" onBack={() => router.back()} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 100 }]}>

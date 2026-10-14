@@ -6,67 +6,90 @@ import { useUser } from '@/context/UserContext';
 import { router } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
-const MenuItem = ({ icon, title, subtitle, onPress, color = '#4A6583', isDanger = false }: any) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.iconBox, { backgroundColor: isDanger ? '#FEF2F2' : '#F0F9FF' }]}>
+import { useTheme } from '@/context/ThemeContext';
+
+const MenuItem = ({ icon, title, subtitle, onPress, color = '#4A6583', isDanger = false, theme, isDark }: any) => (
+    <TouchableOpacity 
+      style={[
+        styles.menuItem, 
+        { 
+          backgroundColor: theme.card, 
+          borderBottomColor: theme.border 
+        }
+      ]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+    >
+      <View style={[
+        styles.iconBox, 
+        { 
+          backgroundColor: isDanger 
+            ? (isDark ? '#7F1D1D' : '#FEF2F2') 
+            : (isDark ? '#082F49' : '#F0F9FF') 
+        }
+      ]}>
         <Feather name={icon} size={20} color={isDanger ? '#EF4444' : '#0EADF1'} />
       </View>
       <View style={styles.menuTextContainer}>
-        <Text style={[styles.menuTitle, isDanger && { color: '#EF4444' }]}>{title}</Text>
-        {subtitle && <Text style={styles.menuSubtitle}>{subtitle}</Text>}
+        <Text style={[styles.menuTitle, { color: isDanger ? '#EF4444' : theme.text }]}>{title}</Text>
+        {subtitle && <Text style={[styles.menuSubtitle, { color: theme.textSecondary }]}>{subtitle}</Text>}
       </View>
-      <Feather name="chevron-right" size={20} color="#C7C7CC" />
+      <Feather name="chevron-right" size={20} color={theme.textSecondary} />
     </TouchableOpacity>
   );
 
 export default function SettingsScreen() {
   const { user } = useUser();
+  const { theme, isDark } = useTheme();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Menu" onBack={() => router.push('/')} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
-        <TouchableOpacity style={styles.profileBox} onPress={() => router.push('/profile-setup?edit=true')} activeOpacity={0.8}>
+        <TouchableOpacity 
+          style={[styles.profileBox, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]} 
+          onPress={() => router.push('/profile-setup?edit=true')} 
+          activeOpacity={0.8}
+        >
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{user.name.charAt(0)}</Text>
           </View>
           <View style={{flex: 1}}>
-            <Text style={styles.profileName}>{user.name}</Text>
-            <Text style={styles.profileEmail}>{user.email}</Text>
+            <Text style={[styles.profileName, { color: theme.text }]}>{user.name}</Text>
+            <Text style={[styles.profileEmail, { color: theme.textSecondary }]}>{user.email}</Text>
           </View>
           <TouchableOpacity 
-            style={styles.editBadge}
+            style={[styles.editBadge, { backgroundColor: isDark ? '#082F49' : '#F0F9FF', borderColor: isDark ? '#0284C7' : '#BAE6FD' }]}
             onPress={() => router.push('/profile-setup?edit=true')}
           >
             <Feather name="edit-2" size={14} color="#0EADF1" />
           </TouchableOpacity>
         </TouchableOpacity>
 
-        <Text style={styles.sectionHeader}>Account</Text>
-        <View style={styles.menuSection}>
-          <MenuItem icon="user" title="My Profile" subtitle="Personal and health details" onPress={() => router.push('/profile')} />
-          <MenuItem icon="users" title="Caregiver Access" subtitle="Manage who can see your data" onPress={() => router.push('/settings/caregiver')} />
-          <MenuItem icon="activity" title="Doctor Information" subtitle="Primary care physician details" onPress={() => router.push('/settings/doctor' as any)} />
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>Account</Text>
+        <View style={[styles.menuSection, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
+          <MenuItem icon="user" title="My Profile" subtitle="Personal and health details" onPress={() => router.push('/profile')} theme={theme} isDark={isDark} />
+          <MenuItem icon="users" title="Caregiver Access" subtitle="Manage who can see your data" onPress={() => router.push('/settings/caregiver')} theme={theme} isDark={isDark} />
+          <MenuItem icon="activity" title="Doctor Information" subtitle="Primary care physician details" onPress={() => router.push('/settings/doctor' as any)} theme={theme} isDark={isDark} />
         </View>
 
-        <Text style={styles.sectionHeader}>Preferences</Text>
-        <View style={styles.menuSection}>
-          <MenuItem icon="bell" title="Medicine Reminders" subtitle="Configure alert sounds and times" onPress={() => router.push('/settings/reminders' as any)} />
-          <MenuItem icon="settings" title="App Preferences" subtitle="Theme, units, and layout" onPress={() => router.push('/settings/preferences' as any)} />
-          <MenuItem icon="globe" title="Language" subtitle="English / اردو" onPress={() => router.push('/settings/language' as any)} />
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>Preferences</Text>
+        <View style={[styles.menuSection, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
+          <MenuItem icon="bell" title="Medicine Reminders" subtitle="Configure alert sounds and times" onPress={() => router.push('/settings/reminders' as any)} theme={theme} isDark={isDark} />
+          <MenuItem icon="settings" title="App Preferences" subtitle="Theme, units, and layout" onPress={() => router.push('/settings/preferences' as any)} theme={theme} isDark={isDark} />
+          <MenuItem icon="globe" title="Language" subtitle="English / اردو" onPress={() => router.push('/settings/language' as any)} theme={theme} isDark={isDark} />
         </View>
 
-        <Text style={styles.sectionHeader}>Support & Security</Text>
-        <View style={styles.menuSection}>
-          <MenuItem icon="shield" title="Privacy & Security" subtitle="Biometrics and data control" onPress={() => router.push('/settings/security' as any)} />
-          <MenuItem icon="help-circle" title="Help & Support" subtitle="FAQs and contact us" onPress={() => router.push('/settings/support' as any)} />
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>Support & Security</Text>
+        <View style={[styles.menuSection, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
+          <MenuItem icon="shield" title="Privacy & Security" subtitle="Biometrics and data control" onPress={() => router.push('/settings/security' as any)} theme={theme} isDark={isDark} />
+          <MenuItem icon="help-circle" title="Help & Support" subtitle="FAQs and contact us" onPress={() => router.push('/settings/support' as any)} theme={theme} isDark={isDark} />
         </View>
 
         <TouchableOpacity 
-          style={styles.signOutBtn}
+          style={[styles.signOutBtn, { backgroundColor: isDark ? '#450a0a' : '#FEF2F2', borderColor: isDark ? '#7F1D1D' : '#FEE2E2' }]}
           onPress={() => setShowLogoutModal(true)}
         >
           <Feather name="log-out" size={20} color="#EF4444" style={{marginRight: 8}} />
@@ -78,12 +101,12 @@ export default function SettingsScreen() {
       {/* Logout Modal */}
       <Modal transparent visible={showLogoutModal} animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalIconContainer}>
-              <Feather name="log-out" size={28} color="#111827" />
+          <View style={[styles.modalContent, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
+            <View style={[styles.modalIconContainer, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]}>
+              <Feather name="log-out" size={28} color={theme.text} />
             </View>
-            <Text style={styles.modalTitle}>Logout</Text>
-            <Text style={styles.modalMessage}>Are you sure you want to logout?</Text>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Logout</Text>
+            <Text style={[styles.modalMessage, { color: theme.textSecondary }]}>Are you sure you want to logout?</Text>
             
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setShowLogoutModal(false)}>

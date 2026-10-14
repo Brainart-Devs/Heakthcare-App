@@ -5,19 +5,21 @@ import { Spacing, Layout } from '@/constants/theme';
 import { useUser } from '@/context/UserContext';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { useTheme } from '@/context/ThemeContext';
 
-const ProfileRow = ({ label, value }: { label: string, value: string }) => {
+const ProfileRow = ({ label, value, labelColor, valueColor }: { label: string, value: string, labelColor?: string, valueColor?: string }) => {
   if (!value) return null;
   return (
     <View style={styles.row}>
-      <Text variant="bodyLarge" color="#8E8E93" style={styles.rowLabel}>{label}</Text>
-      <Text variant="bodyLarge" color="#111827" style={styles.rowValue}>{value}</Text>
+      <Text variant="bodyLarge" color={labelColor || "#8E8E93"} style={styles.rowLabel}>{label}</Text>
+      <Text variant="bodyLarge" color={valueColor || "#111827"} style={styles.rowValue}>{value}</Text>
     </View>
   );
 };
 
 export default function PatientProfileScreen() {
   const { user } = useUser();
+  const { theme, isDark } = useTheme();
 
   const getAge = (dobString: string) => {
     if (!dobString) return '';
@@ -39,7 +41,7 @@ export default function PatientProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Patient Profile" onBack={() => router.back()} />
       
       <ScrollView contentContainerStyle={styles.content}>
@@ -47,10 +49,10 @@ export default function PatientProfileScreen() {
         {/* Avatar Area */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatarPlaceholder}>
-              <Feather name="user" size={40} color="#8E8E93" />
+            <View style={[styles.avatarPlaceholder, { backgroundColor: isDark ? '#1E293B' : '#F4F4F6', borderColor: theme.border }]}>
+              <Feather name="user" size={40} color={theme.textSecondary} />
             </View>
-            <TouchableOpacity style={styles.cameraIcon}>
+            <TouchableOpacity style={[styles.cameraIcon, { backgroundColor: theme.primary, borderColor: theme.background }]}>
               <Feather name="camera" size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -58,24 +60,26 @@ export default function PatientProfileScreen() {
 
         {/* Profile Details */}
         <View style={styles.detailsCard}>
-          <ProfileRow label="Full Name" value={user.name} />
-          <ProfileRow label="Date of Birth" value={`${user.dob} ${getAge(user.dob)}`} />
-          <ProfileRow label="Gender" value={user.gender} />
+          <ProfileRow label="Full Name" value={user.name} labelColor={theme.textSecondary} valueColor={theme.text} />
+          <ProfileRow label="Date of Birth" value={`${user.dob} ${getAge(user.dob)}`} labelColor={theme.textSecondary} valueColor={theme.text} />
+          <ProfileRow label="Gender" value={user.gender} labelColor={theme.textSecondary} valueColor={theme.text} />
           <ProfileRow 
             label="Height" 
             value={user.heightFeet ? `${user.heightFeet}'${user.heightInches}" ${getCm(user.heightFeet, user.heightInches)}` : ''} 
+            labelColor={theme.textSecondary} 
+            valueColor={theme.text}
           />
-          <ProfileRow label="Weight" value={user.weight ? `${user.weight} kg` : ''} />
-          <ProfileRow label="Conditions" value={user.conditions} />
-          <ProfileRow label="Treating Doctor" value={user.doctor} />
-          <ProfileRow label="Emergency Contact" value={user.emergencyPhone} />
+          <ProfileRow label="Weight" value={user.weight ? `${user.weight} kg` : ''} labelColor={theme.textSecondary} valueColor={theme.text} />
+          <ProfileRow label="Conditions" value={user.conditions} labelColor={theme.textSecondary} valueColor={theme.text} />
+          <ProfileRow label="Treating Doctor" value={user.doctor} labelColor={theme.textSecondary} valueColor={theme.text} />
+          <ProfileRow label="Emergency Contact" value={user.emergencyPhone} labelColor={theme.textSecondary} valueColor={theme.text} />
         </View>
 
         {/* Edit Button */}
         <Button 
           title="Edit Profile" 
           variant="outline" 
-          style={styles.editButton} 
+          style={[styles.editButton, { borderColor: theme.primary }]} 
           onPress={() => router.push('/profile-setup?edit=true' as any)} 
         />
         

@@ -3,22 +3,24 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Header, Card, Badge } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function AIInsights() {
+  const { theme, isDark } = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="AI Insights" onBack={() => router.back()} />
-      <View style={styles.tabs}>
+      <View style={[styles.tabs, { backgroundColor: isDark ? '#1E293B' : '#F8F9FA' }]}>
         <Badge label="Summary" status="info" />
         <Badge label="Trends" status="default" />
         <Badge label="Suggestions" status="default" />
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text variant="h3" style={{marginBottom: Spacing.md}}>Last 7 Days Overview</Text>
+        <Text variant="h3" color={theme.text} style={{marginBottom: Spacing.md}}>Last 7 Days Overview</Text>
         
         <Card style={styles.card}>
           <Text variant="h3">Fasting Sugar</Text>
-          <Text variant="bodyLarge" color="#16449C">Average 132 mg/dL</Text>
+          <Text variant="bodyLarge" color={theme.primary}>Average 132 mg/dL</Text>
           <Text variant="body" secondary>Slightly higher than previous week</Text>
         </Card>
 
@@ -34,8 +36,8 @@ export default function AIInsights() {
           <Text variant="body" secondary>Good (1 dose missed)</Text>
         </Card>
 
-        <Card style={[styles.card, {backgroundColor: '#E8E3F2'}]}>
-          <Text variant="h3" color="#16449C">AI Suggestion</Text>
+        <Card style={[styles.card, {backgroundColor: isDark ? '#082F49' : '#E8E3F2'}]}>
+          <Text variant="h3" color={theme.primary}>AI Suggestion</Text>
           <Text variant="bodyLarge" style={{marginTop: Spacing.sm}}>
             Your fasting sugar is slightly higher this week. Consider reviewing your diet and activity levels. If this trend continues, discuss with your doctor.
           </Text>

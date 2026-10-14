@@ -4,6 +4,7 @@ import { Text, Header, Card } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { useTheme } from '@/context/ThemeContext';
 
 interface FAQItem {
   id: string;
@@ -12,6 +13,7 @@ interface FAQItem {
 }
 
 export default function HelpSupportScreen() {
+  const { theme, isDark } = useTheme();
   const [expandedId, setExpandedId] = useState<string | null>('1');
 
   const faqs: FAQItem[] = [
@@ -49,7 +51,7 @@ export default function HelpSupportScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Help & Support" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
@@ -66,56 +68,56 @@ export default function HelpSupportScreen() {
         </TouchableOpacity>
 
         {/* Support Channels */}
-        <Text style={styles.sectionTitle}>Get in Touch</Text>
-        <Card style={styles.channelsCard}>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Get in Touch</Text>
+        <Card style={[styles.channelsCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
           <TouchableOpacity style={styles.channelRow} onPress={handleContactSupport} activeOpacity={0.7}>
-            <View style={styles.channelIcon}>
-              <Feather name="headphones" size={20} color="#0EADF1" />
+            <View style={[styles.channelIcon, { backgroundColor: isDark ? '#082F49' : '#E5FAFA' }]}>
+              <Feather name="headphones" size={20} color={theme.primary} />
             </View>
             <View style={styles.channelMeta}>
-              <Text style={styles.channelTitle}>Live Customer Support</Text>
-              <Text style={styles.channelSubtitle}>Mon–Sat, 09:00 AM – 06:00 PM</Text>
+              <Text style={[styles.channelTitle, { color: theme.text }]}>Live Customer Support</Text>
+              <Text style={[styles.channelSubtitle, { color: theme.textSecondary }]}>Mon–Sat, 09:00 AM – 06:00 PM</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#C7C7CC" />
+            <Feather name="chevron-right" size={18} color={theme.textSecondary} />
           </TouchableOpacity>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
           <TouchableOpacity style={styles.channelRow} onPress={handleContactSupport} activeOpacity={0.7}>
-            <View style={styles.channelIcon}>
-              <Feather name="mail" size={20} color="#0EADF1" />
+            <View style={[styles.channelIcon, { backgroundColor: isDark ? '#082F49' : '#E5FAFA' }]}>
+              <Feather name="mail" size={20} color={theme.primary} />
             </View>
             <View style={styles.channelMeta}>
-              <Text style={styles.channelTitle}>Email Us</Text>
-              <Text style={styles.channelSubtitle}>support@healthtrack.ai</Text>
+              <Text style={[styles.channelTitle, { color: theme.text }]}>Email Us</Text>
+              <Text style={[styles.channelSubtitle, { color: theme.textSecondary }]}>support@healthtrack.ai</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#C7C7CC" />
+            <Feather name="chevron-right" size={18} color={theme.textSecondary} />
           </TouchableOpacity>
         </Card>
 
         {/* FAQs */}
-        <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Frequently Asked Questions</Text>
         <View style={styles.faqList}>
           {faqs.map((faq) => {
             const isExpanded = expandedId === faq.id;
             return (
-              <Card key={faq.id} style={styles.faqCard}>
+              <Card key={faq.id} style={[styles.faqCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
                 <TouchableOpacity 
                   style={styles.faqHeader} 
                   onPress={() => setExpandedId(isExpanded ? null : faq.id)}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.faqQuestion}>{faq.question}</Text>
+                  <Text style={[styles.faqQuestion, { color: theme.text }]}>{faq.question}</Text>
                   <Feather 
                     name={isExpanded ? 'chevron-up' : 'chevron-down'} 
                     size={20} 
-                    color="#0EADF1" 
+                    color={theme.primary} 
                   />
                 </TouchableOpacity>
 
                 {isExpanded && (
                   <View style={styles.faqBody}>
-                    <Text style={styles.faqAnswer}>{faq.answer}</Text>
+                    <Text style={[styles.faqAnswer, { color: theme.textSecondary }]}>{faq.answer}</Text>
                   </View>
                 )}
               </Card>
@@ -125,8 +127,8 @@ export default function HelpSupportScreen() {
 
         {/* App Version Info */}
         <View style={styles.versionFooter}>
-          <Text style={styles.versionText}>HealthTrack AI</Text>
-          <Text style={styles.versionSubtext}>Version 1.0.4 • Designed with Care for Older Adults</Text>
+          <Text style={[styles.versionText, { color: theme.text }]}>HealthTrack AI</Text>
+          <Text style={[styles.versionSubtext, { color: theme.textSecondary }]}>Version 1.0.4 • Designed with Care for Older Adults</Text>
         </View>
 
       </ScrollView>

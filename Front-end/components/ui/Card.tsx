@@ -15,6 +15,8 @@ export function Card({ style, padding = 'md', children, ...rest }: CardProps) {
         styles.card,
         { 
           backgroundColor: theme.card,
+          borderColor: theme.border,
+          borderWidth: 1,
           padding: Spacing[padding],
         },
         style,

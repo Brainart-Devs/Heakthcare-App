@@ -7,9 +7,11 @@ import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { HistoryRecord } from '@/context/UserContext';
 import { Calendar } from 'react-native-calendars';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function HistoryScreen() {
   const { history } = useUser();
+  const { theme, isDark } = useTheme();
   const [filterPeriod, setFilterPeriod] = useState<string>('All');
   
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -110,35 +112,35 @@ export default function HistoryScreen() {
   const uniqueDates = Array.from(new Set(filteredHistory.map(r => r.date)));
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="History" onBack={() => router.push('/')} />
       
-      <View style={styles.filtersContainer}>
+      <View style={[styles.filtersContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <View style={styles.dateFilterRow}>
           <TouchableOpacity 
-            style={styles.dateBtn} 
+            style={[styles.dateBtn, { backgroundColor: isDark ? '#082F49' : '#E5FAFA' }]} 
             onPress={() => setShowDatePicker(true)}
           >
-            <Feather name="calendar" size={16} color="#0EADF1" style={{ marginRight: 6 }} />
-            <Text variant="body" style={{ color: '#0EADF1', fontWeight: '600' }}>
+            <Feather name="calendar" size={16} color={theme.primary} style={{ marginRight: 6 }} />
+            <Text variant="body" style={{ color: theme.primary, fontWeight: '600' }}>
               {getFilterDateText()}
             </Text>
           </TouchableOpacity>
           
           {startDateStr !== '' && (
             <TouchableOpacity onPress={clearDateFilter} style={styles.clearBtn}>
-              <Feather name="x-circle" size={18} color="#8E8E93" />
+              <Feather name="x-circle" size={18} color={theme.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
 
         {showDatePicker && (
           <Modal transparent animationType="fade" visible={showDatePicker}>
-            <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 20 }}>
-              <View style={{ backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: '#f8f9fa' }}>
+            <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: 20 }}>
+              <View style={{ backgroundColor: theme.card, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: theme.border }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: isDark ? '#1E293B' : '#F8F9FA' }}>
                   <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                    <Text variant="bodyLarge" style={{ color: '#0EADF1', fontWeight: 'bold' }}>Close</Text>
+                    <Text variant="bodyLarge" style={{ color: theme.primary, fontWeight: 'bold' }}>Close</Text>
                   </TouchableOpacity>
                 </View>
                 <Calendar
@@ -147,15 +149,15 @@ export default function HistoryScreen() {
                   markedDates={markedDates}
                   onDayPress={onDayPress}
                   theme={{
-                    backgroundColor: '#ffffff',
-                    calendarBackground: '#ffffff',
-                    textSectionTitleColor: '#b6c1cd',
-                    todayTextColor: '#0EADF1',
-                    dayTextColor: '#2d4150',
-                    textDisabledColor: '#d9e1e8',
-                    arrowColor: '#0EADF1',
-                    monthTextColor: '#16449C',
-                    indicatorColor: '#0EADF1',
+                    backgroundColor: theme.card,
+                    calendarBackground: theme.card,
+                    textSectionTitleColor: theme.textSecondary,
+                    todayTextColor: theme.primary,
+                    dayTextColor: theme.text,
+                    textDisabledColor: isDark ? '#475569' : '#d9e1e8',
+                    arrowColor: theme.primary,
+                    monthTextColor: theme.primary,
+                    indicatorColor: theme.primary,
                     textDayFontWeight: '500',
                     textMonthFontWeight: 'bold',
                     textDayHeaderFontWeight: '500'
@@ -173,9 +175,17 @@ export default function HistoryScreen() {
               <TouchableOpacity 
                 key={p}
                 onPress={() => setFilterPeriod(p)}
-                style={[styles.pillBtn, isActive && styles.pillBtnActive]}
+                style={[
+                  styles.pillBtn, 
+                  { backgroundColor: isDark ? '#334155' : '#F4F4F6' },
+                  isActive && { backgroundColor: theme.primary }
+                ]}
               >
-                <Text variant="caption" style={[styles.pillText, isActive && styles.pillTextActive]}>
+                <Text variant="caption" style={[
+                  styles.pillText, 
+                  { color: isDark ? '#94A3B8' : '#8E8E93' },
+                  isActive && { color: '#FFFFFF', fontWeight: '700' }
+                ]}>
                   {p}
                 </Text>
               </TouchableOpacity>
@@ -187,13 +197,13 @@ export default function HistoryScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         {filteredHistory.length === 0 ? (
           <View style={{ alignItems: 'center', marginTop: 100 }}>
-            <MaterialCommunityIcons name="clipboard-text-outline" size={64} color="#D1D5DB" />
-            <Text variant="bodyLarge" color="#8E8E93" style={{ marginTop: Spacing.md }}>No matching readings</Text>
+            <MaterialCommunityIcons name="clipboard-text-outline" size={64} color={isDark ? '#475569' : '#D1D5DB'} />
+            <Text variant="bodyLarge" color={theme.textSecondary} style={{ marginTop: Spacing.md }}>No matching readings</Text>
           </View>
         ) : (
           uniqueDates.map(date => (
             <View key={date} style={{ marginBottom: Spacing.xl }}>
-              <Text variant="h3" color="#111827" style={{ marginBottom: Spacing.md, marginLeft: Spacing.xs }}>
+              <Text variant="h3" color={theme.text} style={{ marginBottom: Spacing.md, marginLeft: Spacing.xs }}>
                 {date}
               </Text>
               
@@ -202,17 +212,17 @@ export default function HistoryScreen() {
                   <Card style={styles.card}>
                     <View style={styles.row}>
                       <View style={{ flex: 1 }}>
-                        <Text variant="bodyLarge" style={{ fontWeight: '600', color: '#111827' }}>
+                        <Text variant="bodyLarge" style={{ fontWeight: '600', color: theme.text }}>
                           {record.type === 'Sugar' ? 'Sugar Reading' : 'Blood Pressure'}
                         </Text>
-                        <Text variant="caption" color="#8E8E93" style={{ marginTop: 2 }}>
+                        <Text variant="caption" color={theme.textSecondary} style={{ marginTop: 2 }}>
                           {record.time} • {record.period}
                         </Text>
                       </View>
                       <View style={{ alignItems: 'flex-end' }}>
-                        <Text variant="h3" color="#111827">
+                        <Text variant="h3" color={theme.text}>
                           {record.value}{' '}
-                          {record.type === 'Sugar' && <Text variant="caption">mg/dL</Text>}
+                          {record.type === 'Sugar' && <Text variant="caption" color={theme.textSecondary}>mg/dL</Text>}
                         </Text>
                         <View style={{ marginTop: 4 }}>
                           <Badge 

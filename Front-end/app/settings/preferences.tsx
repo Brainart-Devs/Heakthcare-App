@@ -1,143 +1,314 @@
 import React, { useState } from 'react';
-import { View, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Vibration } from 'react-native';
 import { Text, Header, Card, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme, ThemeMode } from '@/context/ThemeContext';
 
 export default function AppPreferencesScreen() {
+  const { themeMode, setThemeMode, isDark, theme } = useTheme();
   const [textSize, setTextSize] = useState<'Normal' | 'Large' | 'Extra Large'>('Large');
   const [sugarUnit, setSugarUnit] = useState<'mg/dL' | 'mmol/L'>('mg/dL');
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg');
   const [highContrast, setHighContrast] = useState(true);
   const [voiceGuidance, setVoiceGuidance] = useState(false);
   const [vibrateOnTouch, setVibrateOnTouch] = useState(true);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   const textSizes: ('Normal' | 'Large' | 'Extra Large')[] = ['Normal', 'Large', 'Extra Large'];
+  const themeModes: { mode: ThemeMode; label: string; icon: string }[] = [
+    { mode: 'light', label: 'Light', icon: 'sun' },
+    { mode: 'dark', label: 'Dark', icon: 'moon' },
+    { mode: 'system', label: 'System', icon: 'smartphone' },
+  ];
+
+  const triggerHaptic = () => {
+    if (vibrateOnTouch) {
+      Vibration.vibrate(35);
+    }
+  };
+
+  const handleThemeModeChange = (mode: ThemeMode) => {
+    triggerHaptic();
+    setThemeMode(mode);
+  };
+
+  const handleTextSizeChange = (size: 'Normal' | 'Large' | 'Extra Large') => {
+    triggerHaptic();
+    setTextSize(size);
+  };
 
   const handleSave = () => {
-    Alert.alert('Preferences Saved', 'Your display and measurement units have been updated.');
+    triggerHaptic();
+    setSavedSuccess(true);
+    setTimeout(() => {
+      setSavedSuccess(false);
+      Alert.alert(
+        'Preferences Saved',
+        `• Theme: ${themeMode.toUpperCase()}\n• Text Size: ${textSize}\n• Sugar Unit: ${sugarUnit}\n• Weight Unit: ${weightUnit}\n• High Contrast: ${highContrast ? 'Enabled' : 'Disabled'}`
+      );
+    }, 600);
+  };
+
+  // Font size multiplier for Live Preview
+  const getFontSize = (baseSize: number) => {
+    if (textSize === 'Normal') return baseSize;
+    if (textSize === 'Large') return baseSize + 3;
+    return baseSize + 6;
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="App Preferences" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
+        {/* Color Theme Selector */}
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Color Theme</Text>
+        <Card style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.groupLabel, { color: theme.text }]}>
+            Theme Mode (Dark / Light)
+          </Text>
+          <View style={styles.pillRow}>
+            {themeModes.map((item) => {
+              const isSelected = themeMode === item.mode;
+              return (
+                <TouchableOpacity
+                  key={item.mode}
+                  style={[
+                    styles.pill,
+                    { 
+                      backgroundColor: isSelected ? theme.primary : (isDark ? '#334155' : '#F3F4F6'),
+                      borderColor: isSelected ? theme.primary : theme.border,
+                    }
+                  ]}
+                  onPress={() => handleThemeModeChange(item.mode)}
+                  activeOpacity={0.8}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Feather 
+                      name={item.icon as any} 
+                      size={16} 
+                      color={isSelected ? '#FFFFFF' : theme.text} 
+                    />
+                    <Text style={[
+                      styles.pillText, 
+                      { color: isSelected ? '#FFFFFF' : theme.text },
+                      isSelected && { fontWeight: '800' }
+                    ]}>
+                      {item.label}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <Text style={[styles.pillHelper, { color: theme.primary }]}>
+            {isDark 
+              ? '🌙 Dark mode active: High-contrast, glare-free, and easy on older eyes.' 
+              : '☀️ Light mode active: Crisp, high-contrast daylight reading view.'}
+          </Text>
+        </Card>
+
         {/* Readability & Text Size */}
-        <Text style={styles.sectionTitle}>Readability & Display</Text>
-        <Card style={styles.card}>
-          <Text style={styles.groupLabel}>Text Size (For Older Eyes)</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Readability & Display</Text>
+        <Card style={[
+          styles.card, 
+          { backgroundColor: theme.card, borderColor: theme.border },
+          highContrast && (isDark ? styles.highContrastCardDark : styles.highContrastCardLight)
+        ]}>
+          <Text style={[styles.groupLabel, { color: theme.text }]}>
+            Text Size (For Older Eyes)
+          </Text>
           <View style={styles.pillRow}>
             {textSizes.map((size) => {
               const isSelected = textSize === size;
               return (
                 <TouchableOpacity
                   key={size}
-                  style={[styles.pill, isSelected && styles.pillActive]}
-                  onPress={() => setTextSize(size)}
+                  style={[
+                    styles.pill,
+                    { 
+                      backgroundColor: isSelected ? theme.primary : (isDark ? '#334155' : '#F3F4F6'),
+                      borderColor: isSelected ? theme.primary : theme.border,
+                    }
+                  ]}
+                  onPress={() => handleTextSizeChange(size)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
+                  <Text style={[
+                    styles.pillText, 
+                    { color: isSelected ? '#FFFFFF' : theme.text },
+                    isSelected && { fontWeight: '800' }
+                  ]}>
                     {size} {size === 'Large' ? '★' : ''}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-          <Text style={styles.pillHelper}>★ &apos;Large&apos; is recommended for comfortable reading.</Text>
+          <Text style={[styles.pillHelper, { color: theme.primary }]}>★ &apos;Large&apos; is recommended for comfortable reading.</Text>
 
-          <View style={styles.divider} />
+          {/* Live Preview Box */}
+          <View style={[
+            styles.previewBox, 
+            { 
+              backgroundColor: isDark ? '#0F172A' : '#F0F9FF', 
+              borderColor: isDark ? '#38BDF8' : '#BAE6FD' 
+            }
+          ]}>
+            <View style={styles.previewHeader}>
+              <Feather name="eye" size={14} color={theme.primary} style={{ marginRight: 6 }} />
+              <Text style={[styles.previewTag, { color: theme.primary }]}>LIVE READING PREVIEW ({textSize})</Text>
+            </View>
+            <Text style={[styles.previewTitle, { fontSize: getFontSize(16), color: theme.text }]}>
+              Sitaglu Met (50/850)
+            </Text>
+            <Text style={[styles.previewSub, { fontSize: getFontSize(13), color: theme.textSecondary }]}>
+              Take 1 tablet after dinner with water • 08:00 PM
+            </Text>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
           <View style={styles.switchRow}>
             <View style={styles.switchLabelCol}>
-              <Text style={styles.rowTitle}>High Contrast Mode</Text>
-              <Text style={styles.rowSubtitle}>Darker borders and enhanced text contrast</Text>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>High Contrast Mode</Text>
+              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>Darker borders and enhanced text contrast</Text>
             </View>
             <Switch
               value={highContrast}
-              onValueChange={setHighContrast}
-              trackColor={{ false: '#E5E7EB', true: '#BAE6FD' }}
-              thumbColor={highContrast ? '#0EADF1' : '#9CA3AF'}
+              onValueChange={(val) => {
+                triggerHaptic();
+                setHighContrast(val);
+              }}
+              trackColor={{ false: isDark ? '#334155' : '#E5E7EB', true: isDark ? '#0284C7' : '#BAE6FD' }}
+              thumbColor={highContrast ? theme.primary : '#9CA3AF'}
             />
           </View>
         </Card>
 
         {/* Health Measurement Units */}
-        <Text style={styles.sectionTitle}>Medical Units</Text>
-        <Card style={styles.card}>
-          <Text style={styles.groupLabel}>Blood Sugar Unit</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Medical Units</Text>
+        <Card style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.groupLabel, { color: theme.text }]}>Blood Sugar Unit</Text>
           <View style={styles.unitRow}>
             {(['mg/dL', 'mmol/L'] as const).map((unit) => {
               const isSelected = sugarUnit === unit;
               return (
                 <TouchableOpacity
                   key={unit}
-                  style={[styles.unitBtn, isSelected && styles.unitBtnActive]}
-                  onPress={() => setSugarUnit(unit)}
+                  style={[
+                    styles.unitBtn,
+                    { 
+                      backgroundColor: isSelected ? (isDark ? '#082F49' : '#F0F9FF') : (isDark ? '#334155' : '#F9FAFB'),
+                      borderColor: isSelected ? theme.primary : theme.border,
+                    }
+                  ]}
+                  onPress={() => {
+                    triggerHaptic();
+                    setSugarUnit(unit);
+                  }}
+                  activeOpacity={0.8}
                 >
-                  <Text style={[styles.unitText, isSelected && styles.unitTextActive]}>{unit}</Text>
-                  {unit === 'mg/dL' && <Text style={styles.standardTag}>Pakistan/US Standard</Text>}
+                  <Text style={[
+                    styles.unitText, 
+                    { color: isSelected ? theme.primary : theme.text },
+                    isSelected && { fontWeight: '700' }
+                  ]}>
+                    {unit}
+                  </Text>
+                  {unit === 'mg/dL' && <Text style={[styles.standardTag, { color: theme.textSecondary }]}>Pakistan/US Standard</Text>}
                 </TouchableOpacity>
               );
             })}
           </View>
+          <Text style={[styles.conversionHint, { color: theme.textSecondary }]}>
+            Sample Reading: {sugarUnit === 'mg/dL' ? '115 mg/dL (Normal fasting)' : '6.4 mmol/L (Normal fasting)'}
+          </Text>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
-          <Text style={styles.groupLabel}>Weight Unit</Text>
+          <Text style={[styles.groupLabel, { color: theme.text }]}>Weight Unit</Text>
           <View style={styles.unitRow}>
             {(['kg', 'lbs'] as const).map((unit) => {
               const isSelected = weightUnit === unit;
               return (
                 <TouchableOpacity
                   key={unit}
-                  style={[styles.unitBtn, isSelected && styles.unitBtnActive]}
-                  onPress={() => setWeightUnit(unit)}
+                  style={[
+                    styles.unitBtn,
+                    { 
+                      backgroundColor: isSelected ? (isDark ? '#082F49' : '#F0F9FF') : (isDark ? '#334155' : '#F9FAFB'),
+                      borderColor: isSelected ? theme.primary : theme.border,
+                    }
+                  ]}
+                  onPress={() => {
+                    triggerHaptic();
+                    setWeightUnit(unit);
+                  }}
+                  activeOpacity={0.8}
                 >
-                  <Text style={[styles.unitText, isSelected && styles.unitTextActive]}>
+                  <Text style={[
+                    styles.unitText, 
+                    { color: isSelected ? theme.primary : theme.text },
+                    isSelected && { fontWeight: '700' }
+                  ]}>
                     {unit === 'kg' ? 'Kilograms (kg)' : 'Pounds (lbs)'}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
+          <Text style={[styles.conversionHint, { color: theme.textSecondary }]}>
+            Sample Weight: {weightUnit === 'kg' ? '72 kg' : '158.7 lbs'}
+          </Text>
         </Card>
 
         {/* Accessibility & Voice */}
-        <Text style={styles.sectionTitle}>Accessibility Assistance</Text>
-        <Card style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Accessibility Assistance</Text>
+        <Card style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.switchRow}>
             <View style={styles.switchLabelCol}>
-              <Text style={styles.rowTitle}>Spoken Alert Guidance</Text>
-              <Text style={styles.rowSubtitle}>Read out loud critical alerts and dose names</Text>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>Spoken Alert Guidance</Text>
+              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>Read out loud critical alerts and dose names</Text>
             </View>
             <Switch
               value={voiceGuidance}
-              onValueChange={setVoiceGuidance}
-              trackColor={{ false: '#E5E7EB', true: '#BAE6FD' }}
-              thumbColor={voiceGuidance ? '#0EADF1' : '#9CA3AF'}
+              onValueChange={(val) => {
+                triggerHaptic();
+                setVoiceGuidance(val);
+                if (val) {
+                  Alert.alert('Voice Guidance', 'Voice guidance activated. Critical alarms will speak medicine names out loud.');
+                }
+              }}
+              trackColor={{ false: isDark ? '#334155' : '#E5E7EB', true: isDark ? '#0284C7' : '#BAE6FD' }}
+              thumbColor={voiceGuidance ? theme.primary : '#9CA3AF'}
             />
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
           <View style={styles.switchRow}>
             <View style={styles.switchLabelCol}>
-              <Text style={styles.rowTitle}>Haptic Tap Feedback</Text>
-              <Text style={styles.rowSubtitle}>Light vibration when pressing buttons</Text>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>Haptic Tap Feedback</Text>
+              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>Light vibration when pressing buttons</Text>
             </View>
             <Switch
               value={vibrateOnTouch}
-              onValueChange={setVibrateOnTouch}
-              trackColor={{ false: '#E5E7EB', true: '#BAE6FD' }}
-              thumbColor={vibrateOnTouch ? '#0EADF1' : '#9CA3AF'}
+              onValueChange={(val) => {
+                if (val) Vibration.vibrate(80);
+                setVibrateOnTouch(val);
+              }}
+              trackColor={{ false: isDark ? '#334155' : '#E5E7EB', true: isDark ? '#0284C7' : '#BAE6FD' }}
+              thumbColor={vibrateOnTouch ? theme.primary : '#9CA3AF'}
             />
           </View>
         </Card>
 
         {/* Save Button */}
         <Button 
-          title="Save Preferences" 
+          title={savedSuccess ? 'Saving...' : 'Save Preferences'} 
           onPress={handleSave} 
           style={{ marginTop: Spacing.sm }} 
         />
@@ -148,33 +319,38 @@ export default function AppPreferencesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
+  container: { flex: 1 },
   content: { padding: Spacing.lg, paddingBottom: 60 },
 
   sectionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#8E8E93',
     textTransform: 'uppercase',
     marginBottom: Spacing.sm,
     marginLeft: 4
   },
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: Spacing.lg,
     marginBottom: Spacing.xl,
-    borderWidth: 0,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 1
+  },
+  highContrastCardLight: {
+    borderWidth: 2,
+    borderColor: '#111827',
+  },
+  highContrastCardDark: {
+    borderWidth: 2,
+    borderColor: '#38BDF8',
   },
   groupLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: Spacing.sm
   },
   pillRow: {
@@ -186,30 +362,43 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB'
-  },
-  pillActive: {
-    backgroundColor: '#0EADF1',
-    borderColor: '#0EADF1'
   },
   pillText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151'
-  },
-  pillTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700'
   },
   pillHelper: {
     fontSize: 12,
-    color: '#0E748A',
     marginTop: 4,
-    marginBottom: Spacing.xs
+    marginBottom: Spacing.sm
+  },
+
+  previewBox: {
+    borderRadius: 12,
+    padding: Spacing.md,
+    borderWidth: 1,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.sm
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6
+  },
+  previewTag: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5
+  },
+  previewTitle: {
+    fontWeight: '700',
+    marginBottom: 2
+  },
+  previewSub: {
+    lineHeight: 20
   },
 
   unitRow: {
@@ -221,29 +410,22 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#F9FAFB',
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center'
-  },
-  unitBtnActive: {
-    borderColor: '#0EADF1',
-    backgroundColor: '#F0F9FF'
   },
   unitText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#4B5563'
-  },
-  unitTextActive: {
-    color: '#0EADF1',
-    fontWeight: '700'
   },
   standardTag: {
     fontSize: 10,
-    color: '#8E8E93',
     marginTop: 2
+  },
+  conversionHint: {
+    fontSize: 12,
+    marginTop: 6,
+    fontStyle: 'italic'
   },
 
   switchRow: {
@@ -259,17 +441,15 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 2
   },
   rowSubtitle: {
     fontSize: 13,
-    color: '#8E8E93',
     lineHeight: 18
   },
   divider: {
     height: 1,
-    backgroundColor: '#F3F4F6',
     marginVertical: Spacing.md
   }
 });
+

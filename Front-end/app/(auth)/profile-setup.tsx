@@ -7,10 +7,12 @@ import { mockUser } from '@/constants/mockData';
 import { useUser } from '@/context/UserContext';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
+import { useTheme } from '@/context/ThemeContext';
 
 const RELATIONS = ['Son', 'Daughter', 'Husband', 'Wife', 'Brother', 'Sister', 'Relative'];
 
 export default function ProfileSetup() {
+  const { theme, isDark } = useTheme();
   const params = useLocalSearchParams();
   const isEdit = params.edit === 'true';
   const { user, setUser } = useUser();
@@ -100,23 +102,23 @@ export default function ProfileSetup() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title={isEdit ? "Edit Profile" : "Create Account"} onBack={isEdit ? () => router.back() : () => router.replace('/')} />
       
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 100 }]}>
           
           <View style={styles.avatarSection}>
-            <TouchableOpacity onPress={pickImage} style={styles.avatarContainer}>
+            <TouchableOpacity onPress={pickImage} style={[styles.avatarContainer, { backgroundColor: isDark ? '#1E293B' : '#F4F4F6', borderColor: theme.border }]}>
               {image ? (
                 <Image source={{ uri: image }} style={styles.avatar} />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <Feather name="camera" size={32} color="#8E8E93" />
+                  <Feather name="camera" size={32} color={theme.textSecondary} />
                 </View>
               )}
             </TouchableOpacity>
-            <Text variant="body" color="#16449C" style={{marginTop: Spacing.sm}} onPress={pickImage}>
+            <Text variant="body" color={theme.primary} style={{marginTop: Spacing.sm}} onPress={pickImage}>
               Upload Photo
             </Text>
           </View>
@@ -124,14 +126,14 @@ export default function ProfileSetup() {
           {error ? <Text variant="body" color="#FF3B30" style={{marginBottom: Spacing.md, textAlign: 'center'}}>{error}</Text> : null}
 
           {/* 1. Personal Information */}
-          <Text variant="h2" style={styles.sectionTitle}>Personal Information</Text>
+          <Text variant="h2" style={[styles.sectionTitle, { color: theme.primary }]}>Personal Information</Text>
           <Input label="Full Name" placeholder="Your Name" value={name} onChangeText={setName} />
           <Input label="Date of Birth" placeholder="DD/MM/YYYY" keyboardType="numeric" value={dob} onChangeText={handleDobChange} maxLength={10} />
           <Input label="Gender" placeholder="Male / Female" value={gender} onChangeText={setGender} />
           <Input label="Phone Number" placeholder="03xx xxxxxxx" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
           
           {/* 2. Health Details */}
-          <Text variant="h2" style={styles.sectionTitle}>Health Details</Text>
+          <Text variant="h2" style={[styles.sectionTitle, { color: theme.primary }]}>Health Details</Text>
           <Input label="Blood Group" placeholder="O+, A-, etc." value={bloodGroup} onChangeText={setBloodGroup} />
           <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.sm}}>
             <View style={{flex: 1, paddingRight: Spacing.sm}}>
@@ -143,28 +145,28 @@ export default function ProfileSetup() {
           </View>
           <Input label="Weight" placeholder="e.g. 75 kg" keyboardType="numeric" value={weight} onChangeText={setWeight} />
 
-                    {/* 2b. Medical Info */}
-          <Text variant="h2" style={styles.sectionTitle}>Medical Information</Text>
+          {/* 2b. Medical Info */}
+          <Text variant="h2" style={[styles.sectionTitle, { color: theme.primary }]}>Medical Information</Text>
           <Input label="Conditions" placeholder="Diabetes, Thyroid..." value={conditions} onChangeText={setConditions} />
           <Input label="Treating Doctor" placeholder="Dr. Name" value={doctor} onChangeText={setDoctor} />
 
           {/* 3. Emergency Contact */}
-          <Text variant="h2" style={styles.sectionTitle}>Emergency Contact</Text>
+          <Text variant="h2" style={[styles.sectionTitle, { color: theme.primary }]}>Emergency Contact</Text>
           <Input label="Contact Name" placeholder="Full Name" value={emergencyName} onChangeText={setEmergencyName} />
           <Input label="Contact Number" placeholder="03xx xxxxxxx" keyboardType="phone-pad" value={emergencyPhone} onChangeText={setEmergencyPhone} />
           
-          <Text variant="label" color="#4A6583" style={{marginBottom: Spacing.xs}}>Relation</Text>
+          <Text variant="label" color={theme.textSecondary} style={{marginBottom: Spacing.xs}}>Relation</Text>
           <TouchableOpacity 
             activeOpacity={0.8} 
-            style={styles.dropdownButton}
+            style={[styles.dropdownButton, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: theme.border }]}
             onPress={() => setShowRelationModal(true)}
           >
-            <Text variant="bodyLarge" color="#111827">{relation}</Text>
-            <Feather name="chevron-down" size={20} color="#8E8E93" />
+            <Text variant="bodyLarge" color={theme.text}>{relation}</Text>
+            <Feather name="chevron-down" size={20} color={theme.textSecondary} />
           </TouchableOpacity>
           
           {/* 4. Account Logins / Information */}
-          <Text variant="h2" style={styles.sectionTitle}>Account Information</Text>
+          <Text variant="h2" style={[styles.sectionTitle, { color: theme.primary }]}>Account Information</Text>
           <Input label="Email" placeholder="example@mail.com" keyboardType="email-address" value={email} onChangeText={setEmail} />
           {!isEdit && (
             <Input label="Password" placeholder="Create a password" secureTextEntry value={password} onChangeText={setPassword} />
@@ -181,19 +183,19 @@ export default function ProfileSetup() {
 
       <Modal visible={showRelationModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text variant="h3" style={{marginBottom: Spacing.md, textAlign: 'center'}}>Select Relation</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: isDark ? 1 : 0 }]}>
+            <Text variant="h3" color={theme.text} style={{marginBottom: Spacing.md, textAlign: 'center'}}>Select Relation</Text>
             {RELATIONS.map(rel => (
               <TouchableOpacity 
                 key={rel} 
-                style={styles.modalOption}
+                style={[styles.modalOption, { borderBottomColor: theme.border }]}
                 onPress={() => {
                   setRelation(rel);
                   setShowRelationModal(false);
                 }}
               >
-                <Text variant="bodyLarge" color={relation === rel ? "#16449C" : "#111827"}>{rel}</Text>
-                {relation === rel && <Feather name="check" size={20} color="#16449C" />}
+                <Text variant="bodyLarge" color={relation === rel ? theme.primary : theme.text}>{rel}</Text>
+                {relation === rel && <Feather name="check" size={20} color={theme.primary} />}
               </TouchableOpacity>
             ))}
             <Button title="Cancel" variant="outline" onPress={() => setShowRelationModal(false)} style={{marginTop: Spacing.md}} />

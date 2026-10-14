@@ -4,10 +4,12 @@ import { Text, Header, Card, EmptyState } from '@/components/ui';
 import { Spacing, Layout } from '@/constants/theme';
 import { router } from 'expo-router';
 import { useUser } from '@/context/UserContext';
+import { useTheme } from '@/context/ThemeContext';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function Notifications() {
   const { medicines, toggleMedicineTaken } = useUser();
+  const { theme, isDark } = useTheme();
   const [cleared, setCleared] = React.useState(false);
   
   const todayStr = new Date().toISOString().split('T')[0];
@@ -31,14 +33,14 @@ export default function Notifications() {
   const hasNotifications = !cleared && (untakenMedicines.length > 0 || true); // Always show report notif unless cleared
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header 
         title="Notifications" 
         onBack={() => router.back()} 
         rightElement={
           hasNotifications ? (
             <TouchableOpacity onPress={() => setCleared(true)}>
-              <Text style={{color: '#0EADF1', fontWeight: '600'}}>Clear All</Text>
+              <Text style={{color: theme.primary, fontWeight: '600'}}>Clear All</Text>
             </TouchableOpacity>
           ) : undefined
         } 
@@ -53,17 +55,17 @@ export default function Notifications() {
           <>
             {/* Dynamic Medicine Notifications */}
             {!cleared && untakenMedicines.map(med => (
-              <Card key={med.id} style={styles.card}>
+              <Card key={med.id} style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
                 <View style={styles.cardHeader}>
-                  <View style={[styles.iconCircle, {backgroundColor: '#E6F4EA'}]}>
-                    <MaterialCommunityIcons name="pill" size={20} color="#34A853" />
+                  <View style={[styles.iconCircle, {backgroundColor: isDark ? '#064E3B' : '#E6F4EA'}]}>
+                    <MaterialCommunityIcons name="pill" size={20} color={isDark ? '#34D399' : '#10B981'} />
                   </View>
-                  <Text style={styles.timeText}>{med.time}</Text>
+                  <Text style={[styles.timeText, { color: theme.textSecondary }]}>{med.time}</Text>
                 </View>
                 
-                <Text style={styles.notifTitle}>Time for Medicine</Text>
-                <Text style={styles.notifBody}>
-                  It is time to take <Text style={{fontWeight: '700'}}>{med.name}</Text> ({med.dose}).
+                <Text style={[styles.notifTitle, { color: theme.text }]}>Time for Medicine</Text>
+                <Text style={[styles.notifBody, { color: theme.textSecondary }]}>
+                  It is time to take <Text style={{fontWeight: '700', color: theme.text}}>{med.name}</Text> ({med.dose}).
                 </Text>
                 
                 <TouchableOpacity 
@@ -78,21 +80,21 @@ export default function Notifications() {
 
             {/* Static System Notification */}
             {!cleared && (
-              <Card style={styles.card}>
+              <Card style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
                 <View style={styles.cardHeader}>
-                  <View style={[styles.iconCircle, {backgroundColor: '#E5FAFA'}]}>
-                    <Feather name="bar-chart-2" size={20} color="#05C2C4" />
+                  <View style={[styles.iconCircle, {backgroundColor: isDark ? '#082F49' : '#E5FAFA'}]}>
+                    <Feather name="bar-chart-2" size={20} color={theme.primary} />
                   </View>
-                  <Text style={styles.timeText}>Just now</Text>
+                  <Text style={[styles.timeText, { color: theme.textSecondary }]}>Just now</Text>
                 </View>
                 
-                <Text style={styles.notifTitle}>Weekly Report Ready</Text>
-                <Text style={styles.notifBody}>
+                <Text style={[styles.notifTitle, { color: theme.text }]}>Weekly Report Ready</Text>
+                <Text style={[styles.notifBody, { color: theme.textSecondary }]}>
                   Your health summary for last week is ready to be reviewed.
                 </Text>
                 
                 <TouchableOpacity 
-                  style={[styles.actionBtn, {backgroundColor: '#0EADF1'}]}
+                  style={[styles.actionBtn, {backgroundColor: theme.primary}]}
                   onPress={() => router.push('/reports')}
                 >
                   <Feather name="eye" size={18} color="#FFF" style={{marginRight: 8}} />

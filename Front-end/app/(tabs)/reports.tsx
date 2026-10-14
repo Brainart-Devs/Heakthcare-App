@@ -4,8 +4,10 @@ import { Text, Header, Card, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function ReportsScreen() {
+  const { theme, isDark } = useTheme();
   const [selectedRange, setSelectedRange] = useState<'7' | '30' | '90'>('7');
 
   const ranges = [
@@ -37,21 +39,29 @@ export default function ReportsScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="Reports" onBack={() => router.push('/')} />
       
       {/* Time Range Pills */}
-      <View style={styles.rangeSelector}>
+      <View style={[styles.rangeSelector, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         {ranges.map((r) => {
           const isSelected = selectedRange === r.key;
           return (
             <TouchableOpacity
               key={r.key}
-              style={[styles.rangePill, isSelected && styles.rangePillActive]}
+              style={[
+                styles.rangePill, 
+                { backgroundColor: isDark ? '#334155' : '#F4F4F6' },
+                isSelected && { backgroundColor: theme.primary }
+              ]}
               onPress={() => setSelectedRange(r.key as any)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.rangeText, isSelected && styles.rangeTextActive]}>
+              <Text style={[
+                styles.rangeText, 
+                { color: isDark ? '#94A3B8' : '#4B5563' },
+                isSelected && styles.rangeTextActive
+              ]}>
                 {r.label}
               </Text>
             </TouchableOpacity>
@@ -63,35 +73,35 @@ export default function ReportsScreen() {
         
         {/* Quick Health Summary Stat Boxes */}
         <View style={styles.statsRow}>
-          <Card style={styles.statBox}>
-            <Text style={styles.statLabel}>Avg Blood Sugar</Text>
-            <Text style={styles.statValue}>121 <Text style={styles.statUnit}>mg/dL</Text></Text>
-            <View style={styles.statTagGood}>
-              <Feather name="check" size={12} color="#059669" />
-              <Text style={styles.statTagText}>In Target</Text>
+          <Card style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Avg Blood Sugar</Text>
+            <Text style={[styles.statValue, { color: theme.text }]}>121 <Text style={[styles.statUnit, { color: theme.textSecondary }]}>mg/dL</Text></Text>
+            <View style={[styles.statTagGood, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5' }]}>
+              <Feather name="check" size={12} color={isDark ? '#34D399' : '#059669'} />
+              <Text style={[styles.statTagText, { color: isDark ? '#34D399' : '#059669' }]}>In Target</Text>
             </View>
           </Card>
 
-          <Card style={styles.statBox}>
-            <Text style={styles.statLabel}>Avg Blood Pressure</Text>
-            <Text style={styles.statValue}>124/81 <Text style={styles.statUnit}>mmHg</Text></Text>
-            <View style={styles.statTagGood}>
-              <Feather name="check" size={12} color="#059669" />
-              <Text style={styles.statTagText}>Normal</Text>
+          <Card style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
+            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Avg Blood Pressure</Text>
+            <Text style={[styles.statValue, { color: theme.text }]}>124/81 <Text style={[styles.statUnit, { color: theme.textSecondary }]}>mmHg</Text></Text>
+            <View style={[styles.statTagGood, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5' }]}>
+              <Feather name="check" size={12} color={isDark ? '#34D399' : '#059669'} />
+              <Text style={[styles.statTagText, { color: isDark ? '#34D399' : '#059669' }]}>Normal</Text>
             </View>
           </Card>
         </View>
 
         {/* Sugar Trend Chart Card */}
-        <Card style={styles.chartCard}>
+        <Card style={[styles.chartCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.chartHeader}>
             <View>
-              <Text style={styles.chartTitle}>Fasting Sugar Trend</Text>
-              <Text style={styles.chartSubtitle}>Target: Under 125 mg/dL</Text>
+              <Text style={[styles.chartTitle, { color: theme.text }]}>Fasting Sugar Trend</Text>
+              <Text style={[styles.chartSubtitle, { color: theme.textSecondary }]}>Target: Under 125 mg/dL</Text>
             </View>
             <View style={styles.chartLegend}>
-              <View style={[styles.legendDot, { backgroundColor: '#0EADF1' }]} />
-              <Text style={styles.legendText}>mg/dL</Text>
+              <View style={[styles.legendDot, { backgroundColor: theme.primary }]} />
+              <Text style={[styles.legendText, { color: theme.textSecondary }]}>mg/dL</Text>
             </View>
           </View>
 
@@ -102,17 +112,17 @@ export default function ReportsScreen() {
               const isHigh = d.status === 'high';
               return (
                 <View key={d.day} style={styles.barCol}>
-                  <Text style={styles.barValText}>{d.val}</Text>
-                  <View style={styles.barTrack}>
+                  <Text style={[styles.barValText, { color: theme.textSecondary }]}>{d.val}</Text>
+                  <View style={[styles.barTrack, { backgroundColor: isDark ? '#334155' : '#F3F4F6' }]}>
                     <View 
                       style={[
                         styles.barFill, 
-                        { height: `${heightPercent}%` },
+                        { height: `${heightPercent}%`, backgroundColor: theme.primary },
                         isHigh && { backgroundColor: '#F59E0B' }
                       ]} 
                     />
                   </View>
-                  <Text style={styles.barDayText}>{d.day}</Text>
+                  <Text style={[styles.barDayText, { color: theme.textSecondary }]}>{d.day}</Text>
                 </View>
               );
             })}
@@ -120,15 +130,15 @@ export default function ReportsScreen() {
         </Card>
 
         {/* Blood Pressure Trend Chart Card */}
-        <Card style={styles.chartCard}>
+        <Card style={[styles.chartCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           <View style={styles.chartHeader}>
             <View>
-              <Text style={styles.chartTitle}>Blood Pressure Trend</Text>
-              <Text style={styles.chartSubtitle}>Target: Under 130/85 mmHg</Text>
+              <Text style={[styles.chartTitle, { color: theme.text }]}>Blood Pressure Trend</Text>
+              <Text style={[styles.chartSubtitle, { color: theme.textSecondary }]}>Target: Under 130/85 mmHg</Text>
             </View>
             <View style={styles.chartLegend}>
               <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-              <Text style={styles.legendText}>Systolic</Text>
+              <Text style={[styles.legendText, { color: theme.textSecondary }]}>Systolic</Text>
             </View>
           </View>
 
@@ -139,8 +149,8 @@ export default function ReportsScreen() {
               const isHigh = d.status === 'high';
               return (
                 <View key={d.day} style={styles.barCol}>
-                  <Text style={styles.barValText}>{d.sys}</Text>
-                  <View style={styles.barTrack}>
+                  <Text style={[styles.barValText, { color: theme.textSecondary }]}>{d.sys}</Text>
+                  <View style={[styles.barTrack, { backgroundColor: isDark ? '#334155' : '#F3F4F6' }]}>
                     <View 
                       style={[
                         styles.barFill, 
@@ -149,7 +159,7 @@ export default function ReportsScreen() {
                       ]} 
                     />
                   </View>
-                  <Text style={styles.barDayText}>{d.day}</Text>
+                  <Text style={[styles.barDayText, { color: theme.textSecondary }]}>{d.day}</Text>
                 </View>
               );
             })}

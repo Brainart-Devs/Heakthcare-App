@@ -7,8 +7,12 @@ import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useUser, Medicine } from '@/context/UserContext';
 import { Calendar } from 'react-native-calendars';
 import { Modal } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function MedicinesList() {
+  const { medicines, toggleMedicineTaken } = useUser();
+  const { theme, isDark } = useTheme();
+
   const isMedicineMissed = (medTimeStr: string, currentSelectedDate: Date) => {
     const now = new Date();
     const selectedStart = new Date(currentSelectedDate.getFullYear(), currentSelectedDate.getMonth(), currentSelectedDate.getDate());
@@ -32,10 +36,9 @@ export default function MedicinesList() {
     
     return now.getTime() > medDate.getTime();
   };
-  const { medicines, toggleMedicineTaken } = useUser();
   const [activeTab, setActiveTab] = useState('Today');
-  const [currentDate, setCurrentDate] = useState(new Date('2024-10-01'));
-  const [showDatePicker, setShowDatePicker] = useState(false); // matching mockup date, or use new Date()
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const tabs = ['Today', 'All Medicines', 'Schedule'];
 
@@ -61,11 +64,11 @@ export default function MedicinesList() {
   const recordDateStr = currentDate.toISOString().split('T')[0];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Feather name="chevron-left" size={24} color="#111827" />
-          <Text variant="h2" style={styles.headerTitle}>My Medicines</Text>
+          <Feather name="chevron-left" size={24} color={theme.text} />
+          <Text variant="h2" style={[styles.headerTitle, { color: theme.text }]}>My Medicines</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/add/medicine' as any)}>
           <Feather name="plus" size={18} color="#fff" style={{marginRight: 4}} />
@@ -77,10 +80,18 @@ export default function MedicinesList() {
         {tabs.map(tab => (
           <TouchableOpacity 
             key={tab} 
-            style={[styles.tab, activeTab === tab && styles.tabActive]}
+            style={[
+              styles.tab, 
+              { backgroundColor: isDark ? '#334155' : '#F4F4F6' },
+              activeTab === tab && styles.tabActive
+            ]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+            <Text style={[
+              styles.tabText, 
+              { color: isDark ? '#94A3B8' : '#8E8E93' },
+              activeTab === tab && styles.tabTextActive
+            ]}>
               {tab}
             </Text>
           </TouchableOpacity>
@@ -88,37 +99,45 @@ export default function MedicinesList() {
       </View>
 
       <View style={styles.dateNavigator}>
-        <TouchableOpacity onPress={goBackDate} style={styles.dateArrow}>
-          <Feather name="chevron-left" size={20} color="#111827" />
+        <TouchableOpacity onPress={goBackDate} style={[styles.dateArrow, { backgroundColor: isDark ? '#1E293B' : '#F8F9FA' }]}>
+          <Feather name="chevron-left" size={20} color={theme.text} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <Text style={styles.dateText}>{dateStr}</Text>
+          <Text style={[styles.dateText, { color: theme.text }]}>{dateStr}</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={goForwardDate} style={styles.dateArrow}>
-          <Feather name="chevron-right" size={20} color="#111827" />
+        <TouchableOpacity onPress={goForwardDate} style={[styles.dateArrow, { backgroundColor: isDark ? '#1E293B' : '#F8F9FA' }]}>
+          <Feather name="chevron-right" size={20} color={theme.text} />
         </TouchableOpacity>
       </View>
 
       {showDatePicker && (
         <Modal transparent animationType="fade" visible={showDatePicker}>
-          <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 20 }}>
-            <View style={{ backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: '#f8f9fa' }}>
+          <View style={{ flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: 20 }}>
+            <View style={{ backgroundColor: theme.card, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: theme.border }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 12, backgroundColor: isDark ? '#1E293B' : '#f8f9fa' }}>
                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                  <Text style={{ color: '#0EADF1', fontWeight: 'bold' }}>Close</Text>
+                  <Text style={{ color: theme.primary, fontWeight: 'bold' }}>Close</Text>
                 </TouchableOpacity>
               </View>
               <Calendar
                 current={recordDateStr}
-                markedDates={{ [recordDateStr]: { selected: true, selectedColor: '#0EADF1' } }}
+                markedDates={{ [recordDateStr]: { selected: true, selectedColor: theme.primary } }}
                 onDayPress={(day: any) => {
-                  const selectedDate = new Date(day.timestamp);
+                  const [y, m, d] = day.dateString.split('-').map(Number);
+                  const selectedDate = new Date(y, m - 1, d);
                   setCurrentDate(selectedDate);
                   setShowDatePicker(false);
                 }}
                 theme={{
-                  todayTextColor: '#0EADF1',
-                  arrowColor: '#0EADF1',
+                  backgroundColor: theme.card,
+                  calendarBackground: theme.card,
+                  textSectionTitleColor: theme.textSecondary,
+                  todayTextColor: theme.primary,
+                  dayTextColor: theme.text,
+                  textDisabledColor: isDark ? '#475569' : '#d9e1e8',
+                  arrowColor: theme.primary,
+                  monthTextColor: theme.primary,
+                  indicatorColor: theme.primary,
                   textMonthFontWeight: 'bold',
                 }}
               />
@@ -131,21 +150,25 @@ export default function MedicinesList() {
           const isTaken = !!med.takenStatus[recordDateStr];
           const isMissed = !isTaken && isMedicineMissed(med.time, currentDate);
           
-          const btnStyle = isTaken ? styles.actionBtnTaken : (isMissed ? styles.actionBtnMissed : styles.actionBtnMark);
-          const txtStyle = isTaken ? styles.actionTextTaken : (isMissed ? styles.actionTextMissed : styles.actionTextMark);
+          const btnStyle = isTaken 
+            ? styles.actionBtnTaken 
+            : (isMissed ? styles.actionBtnMissed : [styles.actionBtnMark, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: theme.border }]);
+          const txtStyle = isTaken 
+            ? styles.actionTextTaken 
+            : (isMissed ? styles.actionTextMissed : [styles.actionTextMark, { color: theme.text }]);
           const btnText = isTaken ? 'Taken' : (isMissed ? 'Missed' : 'Mark');
 
           return (
-            <View key={med.id} style={styles.medCard}>
+            <View key={med.id} style={[styles.medCard, { borderBottomColor: theme.border }]}>
               <View style={[styles.iconBox, { backgroundColor: med.color + '20' }]}>
                 <MaterialCommunityIcons name={med.iconType as any} size={24} color={med.color} />
               </View>
 
               <View style={styles.medInfo}>
-                <Text style={styles.medName}>{med.name}</Text>
-                <Text style={styles.medDetail}>{med.dose}</Text>
-                <Text style={styles.medDetail}>{med.timing}</Text>
-                <Text style={styles.medTime}>{med.time}</Text>
+                <Text style={[styles.medName, { color: theme.text }]}>{med.name}</Text>
+                <Text style={[styles.medDetail, { color: theme.textSecondary }]}>{med.dose}</Text>
+                <Text style={[styles.medDetail, { color: theme.textSecondary }]}>{med.timing}</Text>
+                <Text style={[styles.medTime, { color: theme.primary }]}>{med.time}</Text>
               </View>
 
               <TouchableOpacity 

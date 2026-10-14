@@ -34,8 +34,8 @@ export function Input({
         style={[
           styles.inputContainer,
           {
-            backgroundColor: '#F4F4F6', // Premium soft grey
-            borderColor: error ? theme.danger : '#E5E5EA',
+            backgroundColor: theme.card,
+            borderColor: error ? theme.danger : theme.border,
             borderRadius: Layout.borderRadius.lg,
             minHeight: Layout.touchTarget + 8,
           },
@@ -45,7 +45,7 @@ export function Input({
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
         
         <TextInput
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor={theme.textSecondary}
           style={[
             styles.input,
             { color: theme.text, fontSize: Typography.bodyLarge.fontSize },

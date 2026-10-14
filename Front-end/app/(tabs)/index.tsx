@@ -5,11 +5,13 @@ import { Text, Button, Card, Badge } from '@/components/ui';
 import { Spacing, Layout } from '@/constants/theme';
 import { mockReadings } from '@/constants/mockData';
 import { useUser } from '@/context/UserContext';
+import { useTheme } from '@/context/ThemeContext';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function HomeDashboard() {
   const { user, medicines, toggleMedicineTaken } = useUser();
+  const { theme, isDark } = useTheme();
   
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -43,12 +45,12 @@ export default function HomeDashboard() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
         
         {/* Background Gradient scrolling WITH content */}
         <LinearGradient 
-          colors={['#0EADF1', '#0E748A']} 
+          colors={isDark ? ['#0284C7', '#0F172A'] : ['#0EADF1', '#0E748A']} 
           start={{x: 0, y: 0}}
           end={{x: 0.5, y: 1}}
           style={styles.headerGradient} 
@@ -60,7 +62,7 @@ export default function HomeDashboard() {
             {/* Header Section */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-                <View style={styles.avatarContainer}>
+                <View style={[styles.avatarContainer, { borderColor: isDark ? '#38BDF8' : '#FFFFFF' }]}>
                   <Feather name="user" size={24} color="#0E748A" />
                 </View>
                 <View style={styles.headerText}>
@@ -83,15 +85,15 @@ export default function HomeDashboard() {
             {/* Top Row Cards */}
             <View style={[styles.row, {gap: 0, justifyContent: 'space-between'}]}>
               <Card style={styles.halfCard}>
-                <Text variant="bodyLarge" color="#4A6583" style={{fontWeight: '500'}}>Fasting Sugar</Text>
-                <Text style={styles.metricBig}>{mockReadings.sugar.value}</Text>
+                <Text variant="bodyLarge" color={theme.textSecondary} style={{fontWeight: '500'}}>Fasting Sugar</Text>
+                <Text style={[styles.metricBig, { color: theme.text }]}>{mockReadings.sugar.value}</Text>
                 <View style={{alignSelf: 'flex-start'}}>
                   <Badge label="Normal" status="success" />
                 </View>
               </Card>
               <Card style={styles.halfCard}>
-                <Text variant="bodyLarge" color="#4A6583" style={{fontWeight: '500'}}>Blood Pressure</Text>
-                <Text style={styles.metricBig}>{mockReadings.bp.systolic}/{mockReadings.bp.diastolic}</Text>
+                <Text variant="bodyLarge" color={theme.textSecondary} style={{fontWeight: '500'}}>Blood Pressure</Text>
+                <Text style={[styles.metricBig, { color: theme.text }]}>{mockReadings.bp.systolic}/{mockReadings.bp.diastolic}</Text>
                 <View style={{alignSelf: 'flex-start'}}>
                   <Badge label="Good" status="success" />
                 </View>
@@ -101,24 +103,24 @@ export default function HomeDashboard() {
             {/* Middle Row Cards */}
             <View style={[styles.row, {gap: 0, justifyContent: 'space-between'}]}>
               <Card style={[styles.thirdCard, {alignItems: 'center', justifyContent: 'center'}]}>
-                <Text variant="body" color="#4A6583" style={{fontWeight: '500'}}>Pulse</Text>
-                <Text style={styles.metricMedium}>{mockReadings.bp.pulse}</Text>
-                <Text variant="caption" color="#8E8E93">bpm</Text>
+                <Text variant="body" color={theme.textSecondary} style={{fontWeight: '500'}}>Pulse</Text>
+                <Text style={[styles.metricMedium, { color: theme.text }]}>{mockReadings.bp.pulse}</Text>
+                <Text variant="caption" color={theme.textSecondary}>bpm</Text>
               </Card>
               <Card style={[styles.thirdCard, {alignItems: 'center', justifyContent: 'center'}]}>
-                <Text variant="body" color="#4A6583" style={{fontWeight: '500'}}>Weight</Text>
-                <Text style={styles.metricMedium}>{user.weight}</Text>
-                <Text variant="caption" color="#8E8E93">kg</Text>
+                <Text variant="body" color={theme.textSecondary} style={{fontWeight: '500'}}>Weight</Text>
+                <Text style={[styles.metricMedium, { color: theme.text }]}>{user.weight}</Text>
+                <Text variant="caption" color={theme.textSecondary}>kg</Text>
               </Card>
               <Card style={styles.fortyCard}>
-                <Text variant="body" color="#4A6583" style={{fontWeight: '500'}} numberOfLines={1} adjustsFontSizeToFit>Today&apos;s Medicines</Text>
+                <Text variant="body" color={theme.textSecondary} style={{fontWeight: '500'}} numberOfLines={1} adjustsFontSizeToFit>Today&apos;s Medicines</Text>
                 <View style={{flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', width: '100%', marginTop: 4}}>
                   <View>
-                    <Text style={styles.metricMedium}>3 of 5</Text>
+                    <Text style={[styles.metricMedium, { color: theme.text }]}>3 of 5</Text>
                     <Text variant="body" color="#34A853" style={{fontWeight: '600'}}>Taken</Text>
                   </View>
-                  <View style={styles.pillIconCircle}>
-                    <MaterialCommunityIcons name="pill" size={20} color="#16449C" />
+                  <View style={[styles.pillIconCircle, { backgroundColor: isDark ? '#334155' : '#E8E3F2' }]}>
+                    <MaterialCommunityIcons name="pill" size={20} color={theme.primary} />
                   </View>
                 </View>
               </Card>
@@ -127,7 +129,7 @@ export default function HomeDashboard() {
             {/* Action Buttons */}
             <View style={[styles.row, {marginTop: Spacing.sm, marginBottom: Spacing.xl, gap: Spacing.md}]}>
               <TouchableOpacity 
-                style={[styles.actionBtn, {backgroundColor: '#FF4B4B'}]}
+                style={[styles.actionBtn, {backgroundColor: '#EF4444'}]}
                 onPress={() => router.push('/add/sugar')}
               >
                 <MaterialCommunityIcons name="water" size={20} color="#FFF" />
@@ -146,46 +148,46 @@ export default function HomeDashboard() {
             {/* Quick Links */}
             <View style={styles.quickLinksRow}>
               <TouchableOpacity style={styles.quickLinkItem} onPress={() => router.push('/medicines')}>
-                <View style={[styles.quickLinkCircle, {backgroundColor: '#E6F4EA'}]}>
-                  <MaterialCommunityIcons name="pill" size={28} color="#34A853" />
+                <View style={[styles.quickLinkCircle, {backgroundColor: isDark ? '#064E3B' : '#E6F4EA', borderWidth: 1, borderColor: isDark ? '#059669' : '#A7F3D0'}]}>
+                  <MaterialCommunityIcons name="pill" size={28} color={isDark ? '#34D399' : '#10B981'} />
                 </View>
-                <Text variant="caption" style={styles.quickLinkText}>Medicines</Text>
+                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>Medicines</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.quickLinkItem} onPress={() => router.push('/ai/insights')}>
-                <View style={[styles.quickLinkCircle, {backgroundColor: '#E8E3F2'}]}>
-                  <MaterialCommunityIcons name="robot-outline" size={28} color="#16449C" />
+                <View style={[styles.quickLinkCircle, {backgroundColor: isDark ? '#1E1B4B' : '#E8E3F2', borderWidth: 1, borderColor: isDark ? '#6366F1' : '#C7D2FE'}]}>
+                  <MaterialCommunityIcons name="robot-outline" size={28} color={isDark ? '#818CF8' : '#4F46E5'} />
                 </View>
-                <Text variant="caption" style={styles.quickLinkText}>AI Assistant</Text>
+                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>AI Assistant</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.quickLinkItem} onPress={() => router.push('/reports')}>
-                <View style={[styles.quickLinkCircle, {backgroundColor: '#E5FAFA'}]}>
-                  <MaterialCommunityIcons name="clipboard-text-outline" size={28} color="#05C2C4" />
+                <View style={[styles.quickLinkCircle, {backgroundColor: isDark ? '#082F49' : '#E5FAFA', borderWidth: 1, borderColor: isDark ? '#0284C7' : '#BAE6FD'}]}>
+                  <MaterialCommunityIcons name="clipboard-text-outline" size={28} color={isDark ? '#38BDF8' : '#05C2C4'} />
                 </View>
-                <Text variant="caption" style={styles.quickLinkText}>Reports</Text>
+                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>Reports</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.quickLinkItem}>
-                <View style={[styles.quickLinkCircle, {backgroundColor: '#FFF0E6'}]}>
-                  <MaterialCommunityIcons name="dots-grid" size={28} color="#FF9500" />
+              <TouchableOpacity style={styles.quickLinkItem} onPress={() => router.push('/(tabs)/settings')}>
+                <View style={[styles.quickLinkCircle, {backgroundColor: isDark ? '#431407' : '#FFF0E6', borderWidth: 1, borderColor: isDark ? '#EA580C' : '#FED7AA'}]}>
+                  <MaterialCommunityIcons name="dots-grid" size={28} color={isDark ? '#FB923C' : '#EA580C'} />
                 </View>
-                <Text variant="caption" style={styles.quickLinkText}>More</Text>
+                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>More</Text>
               </TouchableOpacity>
             </View>
 
             {/* Upcoming Medicine Card */}
             {upcomingMedicine && (
-              <Card style={{backgroundColor: '#F0F9FF', borderColor: '#BAE6FD', borderWidth: 1}}>
+              <Card style={{backgroundColor: isDark ? '#1E293B' : '#F0F9FF', borderColor: isDark ? '#38BDF8' : '#BAE6FD', borderWidth: 1}}>
                 <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
                   <View style={{flexDirection: 'row', alignItems: 'center', flex: 1}}>
                     <View style={[styles.pillIconCircle, {backgroundColor: upcomingMedicine.color + '20', marginRight: 12}]}>
                       <MaterialCommunityIcons name={upcomingMedicine.iconType as any} size={24} color={upcomingMedicine.color} />
                     </View>
                     <View style={{flex: 1, paddingRight: 8}}>
-                      <Text style={{fontSize: 12, color: '#0284C7', fontWeight: '700', marginBottom: 2}}>UPCOMING MEDICINE</Text>
-                      <Text style={{fontSize: 18, color: '#0F172A', fontWeight: 'bold'}} numberOfLines={1} adjustsFontSizeToFit>{upcomingMedicine.name}</Text>
-                      <Text style={{fontSize: 13, color: '#475569'}}>{upcomingMedicine.dose} • {upcomingMedicine.time}</Text>
+                      <Text style={{fontSize: 12, color: theme.primary, fontWeight: '700', marginBottom: 2}}>UPCOMING MEDICINE</Text>
+                      <Text style={{fontSize: 18, color: theme.text, fontWeight: 'bold'}} numberOfLines={1} adjustsFontSizeToFit>{upcomingMedicine.name}</Text>
+                      <Text style={{fontSize: 13, color: theme.textSecondary}}>{upcomingMedicine.dose} • {upcomingMedicine.time}</Text>
                     </View>
                   </View>
                   <TouchableOpacity 

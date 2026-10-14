@@ -4,8 +4,10 @@ import { Text, Header } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function AIscreen() {
+  const { theme, isDark } = useTheme();
   const [messages, setMessages] = useState([
     { sender: 'ai', text: "Hello! I'm your AI Health Assistant. I can help you understand your readings, track your progress, answer general health questions and prepare reports for your doctor." }
   ]);
@@ -28,66 +30,85 @@ export default function AIscreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <Header title="AI Health Assistant" onBack={() => router.push('/')} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }} keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           
           <View style={{alignItems: 'center', marginBottom: Spacing.xl, marginTop: Spacing.md}}>
-            <View style={styles.botIcon}>
+            <View style={[styles.botIcon, { backgroundColor: theme.primary, shadowColor: theme.primary }]}>
               <MaterialCommunityIcons name="robot-outline" size={32} color="#FFFFFF" />
             </View>
-            <Text style={{color: '#0E748A', fontWeight: '600', fontSize: 16, marginTop: Spacing.sm}}>Your Personal Health Companion</Text>
+            <Text style={{color: theme.primary, fontWeight: '600', fontSize: 16, marginTop: Spacing.sm}}>Your Personal Health Companion</Text>
           </View>
           
-          {messages.map((msg, i) => (
-            <View key={i} style={[styles.bubble, msg.sender === 'ai' ? styles.bubbleAI : styles.bubbleUser]}>
-              <Text style={{fontSize: 16, lineHeight: 24, color: msg.sender === 'user' ? '#FFFFFF' : '#111827'}}>
-                {msg.text}
-              </Text>
-            </View>
-          ))}
+          {messages.map((msg, i) => {
+            const isUser = msg.sender === 'user';
+            return (
+              <View 
+                key={i} 
+                style={[
+                  styles.bubble, 
+                  isUser ? styles.bubbleUser : [styles.bubbleAI, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }],
+                  isUser && { backgroundColor: theme.primary }
+                ]}
+              >
+                <Text style={{fontSize: 16, lineHeight: 24, color: isUser ? '#FFFFFF' : theme.text}}>
+                  {msg.text}
+                </Text>
+              </View>
+            );
+          })}
           
           {messages.length === 1 && (
             <View style={styles.suggestionsContainer}>
-              <Text variant="caption" style={{color: '#8E8E93', marginBottom: Spacing.sm, marginLeft: 4}}>Suggested questions</Text>
+              <Text variant="caption" style={{color: theme.textSecondary, marginBottom: Spacing.sm, marginLeft: 4}}>Suggested questions</Text>
               
-              <TouchableOpacity style={styles.suggestionPill} onPress={() => handleSuggestion('Explain my last 7 days sugar trend')}>
-                <Text style={styles.suggestionText}>Explain my last 7 days sugar trend</Text>
-                <Feather name="arrow-up-right" size={18} color="#16449C" />
+              <TouchableOpacity 
+                style={[styles.suggestionPill, { backgroundColor: theme.card, borderColor: theme.border }]} 
+                onPress={() => handleSuggestion('Explain my last 7 days sugar trend')}
+              >
+                <Text style={[styles.suggestionText, { color: theme.primary }]}>Explain my last 7 days sugar trend</Text>
+                <Feather name="arrow-up-right" size={18} color={theme.primary} />
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.suggestionPill} onPress={() => handleSuggestion('Is my blood pressure normal?')}>
-                <Text style={styles.suggestionText}>Is my blood pressure normal?</Text>
-                <Feather name="arrow-up-right" size={18} color="#16449C" />
+              <TouchableOpacity 
+                style={[styles.suggestionPill, { backgroundColor: theme.card, borderColor: theme.border }]} 
+                onPress={() => handleSuggestion('Is my blood pressure normal?')}
+              >
+                <Text style={[styles.suggestionText, { color: theme.primary }]}>Is my blood pressure normal?</Text>
+                <Feather name="arrow-up-right" size={18} color={theme.primary} />
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.suggestionPill} onPress={() => handleSuggestion('What should I eat for breakfast?')}>
-                <Text style={styles.suggestionText}>What should I eat for breakfast?</Text>
-                <Feather name="arrow-up-right" size={18} color="#16449C" />
+              <TouchableOpacity 
+                style={[styles.suggestionPill, { backgroundColor: theme.card, borderColor: theme.border }]} 
+                onPress={() => handleSuggestion('What should I eat for breakfast?')}
+              >
+                <Text style={[styles.suggestionText, { color: theme.primary }]}>What should I eat for breakfast?</Text>
+                <Feather name="arrow-up-right" size={18} color={theme.primary} />
               </TouchableOpacity>
             </View>
           )}
         </ScrollView>
         
         {/* Custom Chat Input Area */}
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
+        <View style={[styles.inputContainer, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
+          <View style={[styles.inputWrapper, { backgroundColor: isDark ? '#334155' : '#F4F4F6' }]}>
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, { color: theme.text }]}
               placeholder="Ask anything about your health..."
-              placeholderTextColor="#8E8E93"
+              placeholderTextColor={theme.textSecondary}
               value={input}
               onChangeText={setInput}
               multiline
               maxLength={200}
             />
             <TouchableOpacity 
-              style={[styles.sendBtn, !input.trim() && { backgroundColor: '#E5E5EA' }]} 
+              style={[styles.sendBtn, !input.trim() && { backgroundColor: isDark ? '#475569' : '#E5E5EA' }]} 
               onPress={send}
               disabled={!input.trim()}
             >
-              <Feather name="send" size={18} color={input.trim() ? "#FFFFFF" : "#8E8E93"} style={input.trim() ? {marginLeft: -2, marginTop: 2} : {}} />
+              <Feather name="send" size={18} color={input.trim() ? "#FFFFFF" : theme.textSecondary} style={input.trim() ? {marginLeft: -2, marginTop: 2} : {}} />
             </TouchableOpacity>
           </View>
         </View>
