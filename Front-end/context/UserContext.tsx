@@ -51,6 +51,7 @@ interface UserContextType {
   deleteHistoryRecord: (id: string) => void;
   medicines: Medicine[];
   addMedicine: (med: Omit<Medicine, 'id' | 'takenStatus'>) => void;
+  updateMedicine: (id: string, med: Partial<Medicine>) => void;
   toggleMedicineTaken: (id: string, date: string) => void;
   deleteMedicine: (id: string) => void;
 }
@@ -112,6 +113,7 @@ export const UserContext = createContext<UserContextType>({
   deleteHistoryRecord: () => {},
   medicines: initialMedicines,
   addMedicine: () => {},
+  updateMedicine: () => {},
   toggleMedicineTaken: () => {},
   deleteMedicine: () => {}
 });
@@ -126,13 +128,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setHistory([newRecord, ...history]);
   };
 
-    const deleteHistoryRecord = (id: string) => {
+  const deleteHistoryRecord = (id: string) => {
     setHistory(history.filter(record => record.id !== id));
   };
 
   const addMedicine = (med: Omit<Medicine, 'id' | 'takenStatus'>) => {
     const newMed: Medicine = { ...med, id: Date.now().toString(), takenStatus: {} };
     setMedicines([...medicines, newMed]);
+  };
+
+  const updateMedicine = (id: string, updatedFields: Partial<Medicine>) => {
+    setMedicines(prev => prev.map(m => (m.id === id ? { ...m, ...updatedFields } : m)));
   };
 
   const toggleMedicineTaken = (id: string, dateStr: string) => {
@@ -149,9 +155,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setMedicines(medicines.filter(m => m.id !== id));
   };
 
-
   return (
-    <UserContext.Provider value={{ user, setUser, history, addHistoryRecord, deleteHistoryRecord, medicines, addMedicine, toggleMedicineTaken, deleteMedicine }}>
+    <UserContext.Provider value={{ user, setUser, history, addHistoryRecord, deleteHistoryRecord, medicines, addMedicine, updateMedicine, toggleMedicineTaken, deleteMedicine }}>
       {children}
     </UserContext.Provider>
   );

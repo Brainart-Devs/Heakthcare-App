@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Alert, Modal } from 'react-native';
 import { Text, Header, Card, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Modal } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -55,8 +54,14 @@ export default function ReportExport() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      router.back();
-    }, 1500);
+      Alert.alert(
+        'Report Generated',
+        `Your health report (${format}) for ${formatDisplayDate(fromDate)} to ${formatDisplayDate(toDate)} has been generated and is ready to share.`,
+        [
+          { text: 'Done', onPress: () => router.back() }
+        ]
+      );
+    }, 1200);
   };
 
   const toggleInclude = (key: keyof typeof includes) => {

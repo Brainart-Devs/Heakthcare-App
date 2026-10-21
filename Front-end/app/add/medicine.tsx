@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, SafeAreaView, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Modal, TouchableOpacity, Alert } from 'react-native';
 import { Text, Button, Header, Input, Badge } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useUser } from '@/context/UserContext';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
@@ -11,16 +11,37 @@ import { useTheme } from '@/context/ThemeContext';
 
 export default function AddMedicineScreen() {
   const { theme, isDark } = useTheme();
-  const { addMedicine } = useUser();
+  const params = useLocalSearchParams();
+  const editId = typeof params.editId === 'string' ? params.editId : undefined;
+  const { medicines, addMedicine, updateMedicine } = useUser();
+  const existingMed = editId ? medicines.find(m => m.id === editId) : undefined;
+
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState('');
-  const [dose, setDose] = useState('');
-  const [timing, setTiming] = useState('With Meal');
+  const [name, setName] = useState(existingMed ? existingMed.name : '');
+  const [dose, setDose] = useState(existingMed ? existingMed.dose : '');
+  const [timing, setTiming] = useState(existingMed ? existingMed.timing : 'With Meal');
   
-  const [timeObj, setTimeObj] = useState(new Date());
+  const getInitialTimeObj = () => {
+    if (existingMed?.time) {
+      const match = existingMed.time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (match) {
+        let hours = parseInt(match[1], 10);
+        const mins = parseInt(match[2], 10);
+        const ampm = match[3].toUpperCase();
+        if (ampm === 'PM' && hours < 12) hours += 12;
+        if (ampm === 'AM' && hours === 12) hours = 0;
+        const d = new Date();
+        d.setHours(hours, mins, 0, 0);
+        return d;
+      }
+    }
+    return new Date();
+  };
+
+  const [timeObj, setTimeObj] = useState(getInitialTimeObj);
   const [showTimePicker, setShowTimePicker] = useState(false);
   
-  const [days, setDays] = useState('Everyday');
+  const [days, setDays] = useState(existingMed ? existingMed.days : 'Everyday');
   const [error, setError] = useState('');
   
   const [permission, requestPermission] = useCameraPermissions();
@@ -77,27 +98,37 @@ export default function AddMedicineScreen() {
     
     setLoading(true);
     setTimeout(() => {
-      const colors = ['#10B981', '#F59E0B', '#EC4899', '#3B82F6', '#EF4444', '#8B5CF6'];
-      const icons = ['pill', 'bottle-tonic-plus', 'pill-multiple', 'medical-bag'];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      const iconType = icons[Math.floor(Math.random() * icons.length)];
-      
       const options: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
       const timeStr = timeObj.toLocaleTimeString('en-US', options);
 
-      addMedicine({
-        name,
-        dose,
-        timing,
-        time: timeStr,
-        days,
-        iconType,
-        color
-      });
+      if (editId && existingMed) {
+        updateMedicine(editId, {
+          name,
+          dose,
+          timing,
+          time: timeStr,
+          days
+        });
+      } else {
+        const colors = ['#10B981', '#F59E0B', '#EC4899', '#3B82F6', '#EF4444', '#8B5CF6'];
+        const icons = ['pill', 'bottle-tonic-plus', 'pill-multiple', 'medical-bag'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const iconType = icons[Math.floor(Math.random() * icons.length)];
+
+        addMedicine({
+          name,
+          dose,
+          timing,
+          time: timeStr,
+          days,
+          iconType,
+          color
+        });
+      }
       
       setLoading(false);
       router.back();
-    }, 1000);
+    }, 800);
   };
 
   const timings = ['Before Breakfast', 'With Breakfast', 'After Breakfast', 'With Meal', 'Before Dinner', 'After Dinner'];
@@ -106,7 +137,7 @@ export default function AddMedicineScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Add Medicine" onBack={() => router.back()} />
+      <Header title={existingMed ? "Edit Medicine" : "Add Medicine"} onBack={() => router.back()} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 100 }]}>
         
@@ -178,7 +209,7 @@ export default function AddMedicineScreen() {
 
           <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.xxl}}>
             <Button title="Cancel" variant="outline" style={{flex: 1, marginRight: Spacing.sm}} onPress={() => router.back()} />
-            <Button title="Save" onPress={handleSave} loading={loading} style={{flex: 1, marginLeft: Spacing.sm}} />
+            <Button title={existingMed ? "Save Changes" : "Save Medicine"} onPress={handleSave} loading={loading} style={{flex: 1, marginLeft: Spacing.sm}} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
