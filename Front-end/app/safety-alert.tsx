@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Alert, Linking, Vibration, ScrollView } from 'react-native';
+import { View, StyleSheet, SafeAreaView, Alert, Linking, Vibration, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -86,6 +86,19 @@ export default function SafetyAlert() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Top Cross / Dismiss Button */}
+      <View style={styles.topBar}>
+        <TouchableOpacity 
+          style={styles.closeCircle} 
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+          hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          accessibilityLabel="Close alert and go back"
+        >
+          <Feather name="x" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
         {/* Warning Pulsing Icon */}
@@ -131,13 +144,14 @@ export default function SafetyAlert() {
           style={[styles.actionBtn, styles.ambulanceBtn]} 
         />
 
-        {/* Safe Dismiss */}
-        <Button 
-          title="I Am Safe / Dismiss Alert" 
-          variant="outline" 
-          onPress={() => router.back()} 
+        {/* Safe Dismiss Button with Pure White Text and Border */}
+        <TouchableOpacity 
           style={styles.dismissBtn} 
-        />
+          onPress={() => router.back()} 
+          activeOpacity={0.8}
+        >
+          <Text style={styles.dismissBtnText}>I Am Safe / Dismiss Alert</Text>
+        </TouchableOpacity>
 
       </ScrollView>
     </SafeAreaView>
@@ -149,11 +163,28 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#DC2626' // High-visibility medical emergency red
   },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    zIndex: 10,
+  },
+  closeCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
   content: { 
     flexGrow: 1, 
     justifyContent: 'center', 
     padding: Spacing.xl,
-    paddingVertical: 40
+    paddingBottom: 40
   },
   iconCircle: { 
     width: 96, 
@@ -170,7 +201,7 @@ const styles = StyleSheet.create({
     elevation: 6
   },
   titleText: {
-    marginTop: Spacing.xl,
+    marginTop: Spacing.lg,
     fontWeight: '800',
     fontSize: 28,
     lineHeight: 34
@@ -208,8 +239,19 @@ const styles = StyleSheet.create({
     borderColor: '#FECACA'
   },
   dismissBtn: {
-    borderColor: 'rgba(255, 255, 255, 0.5)', 
-    borderWidth: 1,
-    borderRadius: 12
+    borderColor: '#FFFFFF', 
+    borderWidth: 2,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    marginTop: Spacing.xs,
+  },
+  dismissBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
   }
 });
