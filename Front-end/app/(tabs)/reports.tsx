@@ -5,9 +5,11 @@ import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function ReportsScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useLanguage();
   const [selectedRange, setSelectedRange] = useState<'7' | '30' | '90'>('7');
 
   const ranges = [
@@ -40,7 +42,7 @@ export default function ReportsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Reports" onBack={() => router.push('/')} />
+      <Header title={t('reports', 'Reports')} onBack={() => router.push('/')} />
       
       {/* Time Range Pills */}
       <View style={[styles.rangeSelector, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>

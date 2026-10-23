@@ -1,17 +1,19 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Platform, Image } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text, Button, Card, Badge } from '@/components/ui';
 import { Spacing, Layout } from '@/constants/theme';
 import { mockReadings } from '@/constants/mockData';
 import { useUser } from '@/context/UserContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function HomeDashboard() {
   const { user, medicines, toggleMedicineTaken } = useUser();
   const { theme, isDark } = useTheme();
+  const { language, t } = useLanguage();
   
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -32,16 +34,20 @@ export default function HomeDashboard() {
   
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    if (hour < 21) return 'Good Evening';
-    return 'Good Night';
+    if (hour < 12) return t('goodMorning', 'Good Morning');
+    if (hour < 17) return t('goodAfternoon', 'Good Afternoon');
+    if (hour < 21) return t('goodEvening', 'Good Evening');
+    return t('goodNight', 'Good Night');
   };
 
   const getFormattedDate = () => {
-    const options = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
-    // @ts-ignore
-    return new Date().toLocaleDateString('en-US', options);
+    const locale = language === 'ur' ? 'ur-PK' : 'en-US';
+    try {
+      const options: Intl.DateTimeFormatOptions = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
+      return new Date().toLocaleDateString(locale, options);
+    } catch {
+      return new Date().toLocaleDateString('en-US');
+    }
   };
 
   return (
@@ -62,9 +68,17 @@ export default function HomeDashboard() {
             {/* Header Section */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-                <View style={[styles.avatarContainer, { borderColor: isDark ? '#38BDF8' : '#FFFFFF' }]}>
-                  <Feather name="user" size={24} color="#0E748A" />
-                </View>
+                <TouchableOpacity 
+                  onPress={() => router.push('/profile' as any)} 
+                  style={[styles.avatarContainer, { borderColor: isDark ? '#38BDF8' : '#FFFFFF' }]}
+                  activeOpacity={0.8}
+                >
+                  {user.image ? (
+                    <Image source={{ uri: user.image }} style={styles.avatarImage} />
+                  ) : (
+                    <Feather name="user" size={24} color="#0E748A" />
+                  )}
+                </TouchableOpacity>
                 <View style={styles.headerText}>
                   <Text variant="body" style={{color: 'rgba(255,255,255,0.9)'}}>{getGreeting()}</Text>
                   <Text variant="h2" style={{color: '#FFFFFF', marginVertical: 2}}>{user.name}</Text>
@@ -85,17 +99,17 @@ export default function HomeDashboard() {
             {/* Top Row Cards */}
             <View style={[styles.row, {gap: 0, justifyContent: 'space-between'}]}>
               <Card style={styles.halfCard}>
-                <Text variant="bodyLarge" color={theme.textSecondary} style={{fontWeight: '500'}}>Fasting Sugar</Text>
+                <Text variant="bodyLarge" color={theme.textSecondary} style={{fontWeight: '500'}}>{t('fastingSugar', 'Fasting Sugar')}</Text>
                 <Text style={[styles.metricBig, { color: theme.text }]}>{mockReadings.sugar.value}</Text>
                 <View style={{alignSelf: 'flex-start'}}>
-                  <Badge label="Normal" status="success" />
+                  <Badge label={t('normal', 'Normal')} status="success" />
                 </View>
               </Card>
               <Card style={styles.halfCard}>
-                <Text variant="bodyLarge" color={theme.textSecondary} style={{fontWeight: '500'}}>Blood Pressure</Text>
+                <Text variant="bodyLarge" color={theme.textSecondary} style={{fontWeight: '500'}}>{t('bloodPressure', 'Blood Pressure')}</Text>
                 <Text style={[styles.metricBig, { color: theme.text }]}>{mockReadings.bp.systolic}/{mockReadings.bp.diastolic}</Text>
                 <View style={{alignSelf: 'flex-start'}}>
-                  <Badge label="Good" status="success" />
+                  <Badge label={t('good', 'Good')} status="success" />
                 </View>
               </Card>
             </View>
@@ -103,21 +117,21 @@ export default function HomeDashboard() {
             {/* Middle Row Cards */}
             <View style={[styles.row, {gap: 0, justifyContent: 'space-between'}]}>
               <Card style={[styles.thirdCard, {alignItems: 'center', justifyContent: 'center'}]}>
-                <Text variant="body" color={theme.textSecondary} style={{fontWeight: '500'}}>Pulse</Text>
+                <Text variant="body" color={theme.textSecondary} style={{fontWeight: '500'}}>{t('pulse', 'Pulse')}</Text>
                 <Text style={[styles.metricMedium, { color: theme.text }]}>{mockReadings.bp.pulse}</Text>
                 <Text variant="caption" color={theme.textSecondary}>bpm</Text>
               </Card>
               <Card style={[styles.thirdCard, {alignItems: 'center', justifyContent: 'center'}]}>
-                <Text variant="body" color={theme.textSecondary} style={{fontWeight: '500'}}>Weight</Text>
+                <Text variant="body" color={theme.textSecondary} style={{fontWeight: '500'}}>{t('weight', 'Weight')}</Text>
                 <Text style={[styles.metricMedium, { color: theme.text }]}>{user.weight}</Text>
                 <Text variant="caption" color={theme.textSecondary}>kg</Text>
               </Card>
               <Card style={styles.fortyCard}>
-                <Text variant="body" color={theme.textSecondary} style={{fontWeight: '500'}} numberOfLines={1} adjustsFontSizeToFit>Today&apos;s Medicines</Text>
+                <Text variant="body" color={theme.textSecondary} style={{fontWeight: '500'}} numberOfLines={1} adjustsFontSizeToFit>{t('todaysMedicines', "Today's Medicines")}</Text>
                 <View style={{flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', width: '100%', marginTop: 4}}>
                   <View>
                     <Text style={[styles.metricMedium, { color: theme.text }]}>3 of 5</Text>
-                    <Text variant="body" color="#34A853" style={{fontWeight: '600'}}>Taken</Text>
+                    <Text variant="body" color="#34A853" style={{fontWeight: '600'}}>{t('taken', 'Taken')}</Text>
                   </View>
                   <View style={[styles.pillIconCircle, { backgroundColor: isDark ? '#334155' : '#E8E3F2' }]}>
                     <MaterialCommunityIcons name="pill" size={20} color={theme.primary} />
@@ -133,7 +147,7 @@ export default function HomeDashboard() {
                 onPress={() => router.push('/add/sugar')}
               >
                 <MaterialCommunityIcons name="water" size={20} color="#FFF" />
-                <Text variant="bodyLarge" style={styles.actionBtnText}>Add Sugar</Text>
+                <Text variant="bodyLarge" style={styles.actionBtnText}>{t('addSugar', 'Add Sugar')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
@@ -141,7 +155,7 @@ export default function HomeDashboard() {
                 onPress={() => router.push('/add/bp')}
               >
                 <MaterialCommunityIcons name="heart-pulse" size={20} color="#FFF" />
-                <Text variant="bodyLarge" style={styles.actionBtnText}>Add BP</Text>
+                <Text variant="bodyLarge" style={styles.actionBtnText}>{t('addBP', 'Add BP')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -151,28 +165,28 @@ export default function HomeDashboard() {
                 <View style={[styles.quickLinkCircle, {backgroundColor: isDark ? '#064E3B' : '#E6F4EA', borderWidth: 1, borderColor: isDark ? '#059669' : '#A7F3D0'}]}>
                   <MaterialCommunityIcons name="pill" size={28} color={isDark ? '#34D399' : '#10B981'} />
                 </View>
-                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>Medicines</Text>
+                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>{t('myMedicines', 'Medicines')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.quickLinkItem} onPress={() => router.push('/ai/insights')}>
                 <View style={[styles.quickLinkCircle, {backgroundColor: isDark ? '#1E1B4B' : '#E8E3F2', borderWidth: 1, borderColor: isDark ? '#6366F1' : '#C7D2FE'}]}>
                   <MaterialCommunityIcons name="robot-outline" size={28} color={isDark ? '#818CF8' : '#4F46E5'} />
                 </View>
-                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>AI Assistant</Text>
+                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>{t('ai', 'AI Assistant')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.quickLinkItem} onPress={() => router.push('/reports')}>
                 <View style={[styles.quickLinkCircle, {backgroundColor: isDark ? '#082F49' : '#E5FAFA', borderWidth: 1, borderColor: isDark ? '#0284C7' : '#BAE6FD'}]}>
                   <MaterialCommunityIcons name="clipboard-text-outline" size={28} color={isDark ? '#38BDF8' : '#05C2C4'} />
                 </View>
-                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>Reports</Text>
+                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>{t('reports', 'Reports')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.quickLinkItem} onPress={() => router.push('/(tabs)/settings')}>
                 <View style={[styles.quickLinkCircle, {backgroundColor: isDark ? '#431407' : '#FFF0E6', borderWidth: 1, borderColor: isDark ? '#EA580C' : '#FED7AA'}]}>
                   <MaterialCommunityIcons name="dots-grid" size={28} color={isDark ? '#FB923C' : '#EA580C'} />
                 </View>
-                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>More</Text>
+                <Text variant="caption" style={[styles.quickLinkText, { color: theme.textSecondary }]}>{t('more', 'More')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -185,7 +199,7 @@ export default function HomeDashboard() {
                       <MaterialCommunityIcons name={upcomingMedicine.iconType as any} size={24} color={upcomingMedicine.color} />
                     </View>
                     <View style={{flex: 1, paddingRight: 8}}>
-                      <Text style={{fontSize: 12, color: theme.primary, fontWeight: '700', marginBottom: 2}}>UPCOMING MEDICINE</Text>
+                      <Text style={{fontSize: 12, color: theme.primary, fontWeight: '700', marginBottom: 2}}>{t('upcomingMedicineHeader', 'UPCOMING MEDICINE')}</Text>
                       <Text style={{fontSize: 18, color: theme.text, fontWeight: 'bold'}} numberOfLines={1} adjustsFontSizeToFit>{upcomingMedicine.name}</Text>
                       <Text style={{fontSize: 13, color: theme.textSecondary}}>{upcomingMedicine.dose} • {upcomingMedicine.time}</Text>
                     </View>
@@ -195,7 +209,7 @@ export default function HomeDashboard() {
                     onPress={() => toggleMedicineTaken(upcomingMedicine.id, todayStr)}
                   >
                     <Feather name="check" size={16} color="#FFF" style={{marginRight: 4}} />
-                    <Text style={{color: '#FFF', fontWeight: '700', fontSize: 14}}>Take</Text>
+                    <Text style={{color: '#FFF', fontWeight: '700', fontSize: 14}}>{t('take', 'Take')}</Text>
                   </TouchableOpacity>
                 </View>
               </Card>
@@ -248,7 +262,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: Spacing.md,
     borderWidth: 2,
-    borderColor: '#FFFFFF'
+    borderColor: '#FFFFFF',
+    overflow: 'hidden'
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 28
   },
   headerText: { justifyContent: 'center' },
   headerRight: { flexDirection: 'row' },

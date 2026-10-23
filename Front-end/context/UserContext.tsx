@@ -41,6 +41,7 @@ type UserData = {
   relation: string;
   conditions: string;
   doctor: string;
+  image?: string;
 };
 
 interface UserContextType {

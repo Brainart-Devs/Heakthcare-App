@@ -5,9 +5,10 @@ import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage, SupportedLanguage } from '@/context/LanguageContext';
 
 interface LanguageOption {
-  code: string;
+  code: SupportedLanguage;
   name: string;
   nativeName: string;
   subtitle: string;
@@ -18,7 +19,8 @@ interface LanguageOption {
 
 export default function LanguageScreen() {
   const { theme, isDark } = useTheme();
-  const [selectedLang, setSelectedLang] = useState('en');
+  const { language, setLanguage, t } = useLanguage();
+  const [selectedLang, setSelectedLang] = useState<SupportedLanguage>(language);
 
   const languages: LanguageOption[] = [
     { 
@@ -38,37 +40,31 @@ export default function LanguageScreen() {
       sampleGreeting: 'صبح بخیر، مریض',
       sampleMed: 'سیٹاگلو میٹ (Sitaglu Met 50/850)',
       sampleInstruction: 'رات کے کھانے کے بعد 1 گولی • پانی کے ساتھ'
-    },
-    { 
-      code: 'pa', 
-      name: 'Punjabi', 
-      nativeName: 'پنجابی / ਪੰਜਾਬੀ', 
-      subtitle: 'Regional language support',
-      sampleGreeting: 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ / ست سری اکال',
-      sampleMed: 'ਸੀਟਾਗਲੂ ਮੈਟ (Sitaglu Met 50/850)',
-      sampleInstruction: 'ਰਾਤ ਦੇ ਖਾਣੇ ਤੋਂ ਬਾਅਦ 1 ਗੋਲੀ ਲਵੋ'
     }
   ];
 
   const currentLangObj = languages.find(l => l.code === selectedLang) || languages[0];
 
-  const handleSelect = (code: string) => {
+  const handleSelect = (code: SupportedLanguage) => {
     Vibration.vibrate(30);
     setSelectedLang(code);
   };
 
   const handleApply = () => {
     Vibration.vibrate(50);
+    setLanguage(selectedLang);
     Alert.alert(
-      'Language Updated',
-      `Language has been switched to ${currentLangObj.name} (${currentLangObj.nativeName}). The application interface is updated.`,
-      [{ text: 'OK', onPress: () => router.back() }]
+      selectedLang === 'ur' ? 'زبان تبدیل ہو گئی' : 'Language Updated',
+      selectedLang === 'ur'
+        ? `ایپلی کیشن کی زبان کامیابی سے ${currentLangObj.name} (${currentLangObj.nativeName}) میں تبدیل کر دی گئی ہے۔`
+        : `Language has been switched to ${currentLangObj.name} (${currentLangObj.nativeName}). The application interface is updated.`,
+      [{ text: selectedLang === 'ur' ? 'ٹھیک ہے' : 'OK', onPress: () => router.back() }]
     );
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="Language" onBack={() => router.back()} />
+      <Header title={t('language', 'Language')} onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
         {/* Banner */}
@@ -77,15 +73,19 @@ export default function LanguageScreen() {
             <Feather name="globe" size={26} color={theme.primary} />
           </View>
           <View style={styles.bannerTextCol}>
-            <Text style={[styles.bannerTitle, { color: theme.text }]}>Choose Your Language</Text>
+            <Text style={[styles.bannerTitle, { color: theme.text }]}>
+              {t('chooseLanguage', 'Choose Your Language')}
+            </Text>
             <Text style={[styles.bannerSubtitle, { color: theme.textSecondary }]}>
-              Select the language you feel most comfortable reading your health reports and alerts in.
+              {t('chooseLanguageSubtitle', 'Select the language you feel most comfortable reading your health reports and alerts in.')}
             </Text>
           </View>
         </View>
 
         {/* Language Options List */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Available Languages</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+          {t('availableLanguages', 'Available Languages')}
+        </Text>
         <Card style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1 }]}>
           {languages.map((lang, idx) => {
             const isSelected = selectedLang === lang.code;
@@ -122,7 +122,9 @@ export default function LanguageScreen() {
         </Card>
 
         {/* Live Translation Sample Preview Card */}
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Live Language Preview ({currentLangObj.name})</Text>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+          {t('livePreview', 'Live Language Preview')} ({currentLangObj.name})
+        </Text>
         <Card style={[styles.previewCard, { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderLeftColor: theme.primary }]}>
           <View style={styles.previewHeader}>
             <Feather name="book-open" size={16} color={theme.primary} style={{ marginRight: 6 }} />
@@ -136,13 +138,13 @@ export default function LanguageScreen() {
         <View style={[styles.noticeBox, { backgroundColor: isDark ? '#082F49' : '#E5FAFA' }]}>
           <Feather name="info" size={18} color={theme.primary} style={{ marginRight: 8, marginTop: 2 }} />
           <Text style={[styles.noticeText, { color: theme.primary }]}>
-            Medical Safety Note: Drug brand names (e.g. Panadol, Sitaglu Met) are always clearly displayed in English alongside regional text for clinical accuracy.
+            {t('medicalSafetyNote', 'Medical Safety Note: Drug brand names (e.g. Panadol, Sitaglu Met) are always clearly displayed in English alongside regional text for clinical accuracy.')}
           </Text>
         </View>
 
         {/* Apply Button */}
         <Button 
-          title={`Apply ${currentLangObj.name} (${currentLangObj.nativeName})`}
+          title={`${t('apply', 'Apply')} ${currentLangObj.name} (${currentLangObj.nativeName})`}
           onPress={handleApply} 
           style={{ marginTop: Spacing.xl }} 
         />
@@ -198,95 +200,74 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
+    padding: 0,
     borderRadius: 16,
-    padding: Spacing.sm,
     marginBottom: Spacing.xl,
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1
+    overflow: 'hidden'
   },
   langRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.md,
-    borderRadius: 12
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 18,
   },
-  langRowActive: {
-    backgroundColor: '#F0F9FF'
-  },
-  langTextCol: { flex: 1 },
+  langTextCol: { flex: 1, paddingRight: Spacing.md },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2
+    marginBottom: 4
   },
   langName: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
-    color: '#111827'
-  },
-  langNameActive: {
-    color: '#0EADF1',
-    fontWeight: '700'
+    color: '#111827',
   },
   nativeName: {
     fontSize: 16,
-    color: '#6B7280',
+    fontWeight: '500',
+    color: '#4B5563',
     marginLeft: 6
-  },
-  nativeNameActive: {
-    color: '#0E748A',
-    fontWeight: '700'
   },
   langSubtitle: {
     fontSize: 13,
-    color: '#8E8E93'
+    color: '#6B7280'
   },
-
   checkCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     borderWidth: 2,
     borderColor: '#D1D5DB',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: Spacing.md
-  },
-  checkCircleActive: {
-    backgroundColor: '#0EADF1',
-    borderColor: '#0EADF1'
+    alignItems: 'center'
   },
   divider: {
     height: 1,
     backgroundColor: '#F3F4F6',
-    marginHorizontal: Spacing.sm
+    marginLeft: Spacing.lg
   },
 
   previewCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
     padding: Spacing.lg,
-    marginBottom: Spacing.xl,
+    borderRadius: 16,
+    marginBottom: Spacing.lg,
     borderLeftWidth: 4,
     borderLeftColor: '#0EADF1'
   },
   previewHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.xs
+    marginBottom: 8
   },
   previewGreeting: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#16449C'
+    color: '#0E748A'
   },
   previewMed: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#111827',
     marginBottom: 4
@@ -302,12 +283,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5FAFA',
     padding: Spacing.md,
     borderRadius: 12,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.sm,
     alignItems: 'flex-start'
   },
   noticeText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 12,
     color: '#0E748A',
-    lineHeight: 18
+    lineHeight: 18,
+    fontWeight: '500'
   }
 });

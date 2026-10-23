@@ -1,9 +1,12 @@
 import { Tabs } from 'expo-router';
 import { useThemeColor } from '@/constants/theme';
 import { Feather } from '@expo/vector-icons';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function TabsLayout() {
   const theme = useThemeColor();
+  const { t } = useLanguage();
+
   return (
     <Tabs
       screenOptions={{
@@ -30,11 +33,11 @@ export default function TabsLayout() {
         }
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({color, size}) => <Feather name="home" size={24} color={color} /> }} />
-      <Tabs.Screen name="history" options={{ title: 'History', tabBarIcon: ({color, size}) => <Feather name="clock" size={24} color={color} /> }} />
-      <Tabs.Screen name="ai" options={{ title: 'AI', tabBarIcon: ({color, size}) => <Feather name="cpu" size={24} color={color} /> }} />
-      <Tabs.Screen name="reports" options={{ title: 'Reports', tabBarIcon: ({color, size}) => <Feather name="file-text" size={24} color={color} /> }} />
-      <Tabs.Screen name="settings" options={{ title: 'Menu', tabBarIcon: ({color, size}) => <Feather name="menu" size={24} color={color} /> }} />
+      <Tabs.Screen name="index" options={{ title: t('home', 'Home'), tabBarIcon: ({color}) => <Feather name="home" size={24} color={color} /> }} />
+      <Tabs.Screen name="history" options={{ title: t('history', 'History'), tabBarIcon: ({color}) => <Feather name="clock" size={24} color={color} /> }} />
+      <Tabs.Screen name="ai" options={{ title: t('ai', 'AI'), tabBarIcon: ({color}) => <Feather name="cpu" size={24} color={color} /> }} />
+      <Tabs.Screen name="reports" options={{ title: t('reports', 'Reports'), tabBarIcon: ({color}) => <Feather name="file-text" size={24} color={color} /> }} />
+      <Tabs.Screen name="settings" options={{ title: t('menu', 'Menu'), tabBarIcon: ({color}) => <Feather name="menu" size={24} color={color} /> }} />
     </Tabs>
   );
 }

@@ -8,10 +8,12 @@ import { router } from 'expo-router';
 import { HistoryRecord } from '@/context/UserContext';
 import { Calendar } from 'react-native-calendars';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function HistoryScreen() {
   const { history } = useUser();
   const { theme, isDark } = useTheme();
+  const { t } = useLanguage();
   const [filterPeriod, setFilterPeriod] = useState<string>('All');
   
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -113,7 +115,7 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="History" onBack={() => router.push('/')} />
+      <Header title={t('history', 'History')} onBack={() => router.push('/')} />
       
       <View style={[styles.filtersContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <View style={styles.dateFilterRow}>

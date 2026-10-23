@@ -18,7 +18,7 @@ export default function ProfileSetup() {
   const { user, setUser } = useUser();
   
   const [loading, setLoading] = useState(false);
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(isEdit && user.image ? user.image : null);
   
   const [name, setName] = useState(isEdit ? user.name : '');
   const [dob, setDob] = useState(isEdit ? user.dob : '');
@@ -88,7 +88,23 @@ export default function ProfileSetup() {
       return;
     }
 
-    setUser({ name, dob, gender, email, phone, bloodGroup, heightFeet, heightInches, weight, emergencyName, emergencyPhone, relation, conditions, doctor });
+    setUser({ 
+      name, 
+      dob, 
+      gender, 
+      email, 
+      phone, 
+      bloodGroup, 
+      heightFeet, 
+      heightInches, 
+      weight, 
+      emergencyName, 
+      emergencyPhone, 
+      relation, 
+      conditions, 
+      doctor,
+      image: image || user.image || undefined
+    });
     
     setLoading(true);
     setTimeout(() => {

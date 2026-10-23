@@ -5,6 +5,7 @@ import { Spacing, Layout } from '@/constants/theme';
 import { useUser } from '@/context/UserContext';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/context/ThemeContext';
 
 const ProfileRow = ({ label, value, labelColor, valueColor }: { label: string, value: string, labelColor?: string, valueColor?: string }) => {
@@ -18,8 +19,21 @@ const ProfileRow = ({ label, value, labelColor, valueColor }: { label: string, v
 };
 
 export default function PatientProfileScreen() {
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   const { theme, isDark } = useTheme();
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setUser({ ...user, image: result.assets[0].uri });
+    }
+  };
 
   const getAge = (dobString: string) => {
     if (!dobString) return '';
@@ -49,10 +63,22 @@ export default function PatientProfileScreen() {
         {/* Avatar Area */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarContainer}>
-            <View style={[styles.avatarPlaceholder, { backgroundColor: isDark ? '#1E293B' : '#F4F4F6', borderColor: theme.border }]}>
-              <Feather name="user" size={40} color={theme.textSecondary} />
-            </View>
-            <TouchableOpacity style={[styles.cameraIcon, { backgroundColor: theme.primary, borderColor: theme.background }]}>
+            <TouchableOpacity 
+              onPress={pickImage}
+              activeOpacity={0.8}
+              style={[styles.avatarPlaceholder, { backgroundColor: isDark ? '#1E293B' : '#F4F4F6', borderColor: theme.border }]}
+            >
+              {user.image ? (
+                <Image source={{ uri: user.image }} style={styles.avatarImage} />
+              ) : (
+                <Feather name="user" size={44} color={theme.textSecondary} />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.cameraIcon, { backgroundColor: theme.primary, borderColor: theme.background }]}
+              onPress={pickImage}
+              activeOpacity={0.8}
+            >
               <Feather name="camera" size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -109,8 +135,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F4F6',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E5EA'
+    borderWidth: 2,
+    borderColor: '#E5E5EA',
+    overflow: 'hidden'
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 60
   },
   cameraIcon: {
     position: 'absolute',

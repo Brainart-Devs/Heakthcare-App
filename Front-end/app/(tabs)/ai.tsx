@@ -5,9 +5,11 @@ import { Spacing } from '@/constants/theme';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function AIscreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState([
     { sender: 'ai', text: "Hello! I'm your AI Health Assistant. I can help you understand your readings, track your progress, answer general health questions and prepare reports for your doctor." }
   ]);
@@ -31,7 +33,7 @@ export default function AIscreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <Header title="AI Health Assistant" onBack={() => router.push('/')} />
+      <Header title={t('aiAssistant', 'AI Health Assistant')} onBack={() => router.push('/')} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }} keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           

@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { UserProvider } from '@/context/UserContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { LanguageProvider } from '@/context/LanguageContext';
 import { StatusBar } from 'expo-status-bar';
 
 SplashScreen.preventAutoHideAsync();
@@ -47,7 +48,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <UserProvider>
-        <RootStack />
+        <LanguageProvider>
+          <RootStack />
+        </LanguageProvider>
       </UserProvider>
     </ThemeProvider>
   );

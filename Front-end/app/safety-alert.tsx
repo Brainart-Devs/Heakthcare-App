@@ -5,16 +5,18 @@ import { Spacing } from '@/constants/theme';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useUser } from '@/context/UserContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function SafetyAlert() {
   const { user } = useUser();
+  const { t } = useLanguage();
   const params = useLocalSearchParams();
 
-  const alertTitle = typeof params.title === 'string' ? params.title : 'Critical Health Alert';
+  const alertTitle = typeof params.title === 'string' ? params.title : t('criticalAlert', 'Critical Health Alert');
   const alertValue = typeof params.value === 'string' ? params.value : '';
   const alertMessage = typeof params.message === 'string' 
     ? params.message 
-    : 'Your recorded reading was critically outside safe medical limits. Please contact your doctor or emergency services immediately.';
+    : t('criticalMessage', 'Your recorded reading was critically outside safe medical limits. Please contact your doctor or emergency services immediately.');
 
   useEffect(() => {
     // Medical warning vibration pattern on mount
@@ -122,7 +124,7 @@ export default function SafetyAlert() {
 
         {/* Primary Action: Call Doctor */}
         <Button 
-          title={`Call Doctor (${doctorName})`} 
+          title={`${t('callDoctor', 'Call Doctor')} (${doctorName})`} 
           variant="secondary" 
           onPress={handleCallDoctor}
           style={styles.actionBtn} 
@@ -130,7 +132,7 @@ export default function SafetyAlert() {
 
         {/* Secondary Action: Call Caregiver */}
         <Button 
-          title={`Call Caregiver (${caregiverName})`} 
+          title={`${t('callCaregiver', 'Call Caregiver')} (${caregiverName})`} 
           variant="secondary" 
           onPress={handleCallCaregiver}
           style={styles.actionBtn} 
@@ -138,7 +140,7 @@ export default function SafetyAlert() {
 
         {/* Life-Saving Action: Call Ambulance 1122 */}
         <Button 
-          title="Call Emergency Ambulance (1122)" 
+          title={t('callAmbulance', 'Call Emergency Ambulance (1122)')} 
           variant="secondary" 
           onPress={handleCallAmbulance}
           style={[styles.actionBtn, styles.ambulanceBtn]} 
@@ -150,7 +152,7 @@ export default function SafetyAlert() {
           onPress={() => router.back()} 
           activeOpacity={0.8}
         >
-          <Text style={styles.dismissBtnText}>I Am Safe / Dismiss Alert</Text>
+          <Text style={styles.dismissBtnText}>{t('dismissAlert', 'I Am Safe / Dismiss Alert')}</Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -198,60 +200,62 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 }, 
     shadowOpacity: 0.25, 
     shadowRadius: 16,
-    elevation: 6
+    elevation: 8,
+    marginBottom: Spacing.xl
   },
-  titleText: {
-    marginTop: Spacing.lg,
-    fontWeight: '800',
-    fontSize: 28,
+  titleText: { 
+    fontSize: 28, 
+    fontWeight: '800', 
+    marginBottom: Spacing.md,
     lineHeight: 34
   },
   valueBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignSelf: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginTop: Spacing.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: 16,
+    marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)'
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   valueBadgeText: {
     color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 18
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
-  messageText: {
-    marginTop: Spacing.md, 
+  messageText: { 
+    fontSize: 16, 
+    lineHeight: 24, 
     marginBottom: Spacing.xxl, 
     opacity: 0.95,
-    lineHeight: 24,
-    fontSize: 16
+    paddingHorizontal: Spacing.sm
   },
-  actionBtn: {
+  actionBtn: { 
     marginBottom: Spacing.md,
+    height: 56,
     backgroundColor: '#FFFFFF'
   },
   ambulanceBtn: {
-    marginBottom: Spacing.xl,
     backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA'
+    borderWidth: 2,
+    borderColor: '#EF4444'
   },
   dismissBtn: {
-    borderColor: '#FFFFFF', 
-    borderWidth: 2,
-    borderRadius: 14,
-    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    marginTop: Spacing.xs,
+    paddingVertical: 14,
+    marginTop: Spacing.sm,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
   dismissBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
-    textAlign: 'center',
+    letterSpacing: 0.3,
   }
 });
