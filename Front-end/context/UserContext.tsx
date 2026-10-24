@@ -55,6 +55,8 @@ interface UserContextType {
   updateMedicine: (id: string, med: Partial<Medicine>) => void;
   toggleMedicineTaken: (id: string, date: string) => void;
   deleteMedicine: (id: string) => void;
+  voiceGuidance: boolean;
+  setVoiceGuidance: (enabled: boolean) => void;
 }
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
@@ -116,13 +118,16 @@ export const UserContext = createContext<UserContextType>({
   addMedicine: () => {},
   updateMedicine: () => {},
   toggleMedicineTaken: () => {},
-  deleteMedicine: () => {}
+  deleteMedicine: () => {},
+  voiceGuidance: true,
+  setVoiceGuidance: () => {}
 });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserData>(defaultUser);
   const [history, setHistory] = useState<HistoryRecord[]>(initialHistory);
   const [medicines, setMedicines] = useState<Medicine[]>(initialMedicines);
+  const [voiceGuidance, setVoiceGuidance] = useState<boolean>(true);
 
   const addHistoryRecord = (record: Omit<HistoryRecord, 'id'>) => {
     const newRecord = { ...record, id: Date.now().toString() };
@@ -157,7 +162,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, history, addHistoryRecord, deleteHistoryRecord, medicines, addMedicine, updateMedicine, toggleMedicineTaken, deleteMedicine }}>
+    <UserContext.Provider value={{ user, setUser, history, addHistoryRecord, deleteHistoryRecord, medicines, addMedicine, updateMedicine, toggleMedicineTaken, deleteMedicine, voiceGuidance, setVoiceGuidance }}>
       {children}
     </UserContext.Provider>
   );

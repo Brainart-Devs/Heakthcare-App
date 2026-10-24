@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, SafeAreaView, Alert, Linking, Vibration, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
@@ -6,11 +6,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useUser } from '@/context/UserContext';
 import { useLanguage } from '@/context/LanguageContext';
+import * as Speech from 'expo-speech';
 
 export default function SafetyAlert() {
-  const { user } = useUser();
-  const { t } = useLanguage();
+  const { user, voiceGuidance } = useUser();
+  const { isUrdu, t } = useLanguage();
   const params = useLocalSearchParams();
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const alertTitle = typeof params.title === 'string' ? params.title : t('criticalAlert', 'Critical Health Alert');
   const alertValue = typeof params.value === 'string' ? params.value : '';
@@ -18,10 +20,49 @@ export default function SafetyAlert() {
     ? params.message 
     : t('criticalMessage', 'Your recorded reading was critically outside safe medical limits. Please contact your doctor or emergency services immediately.');
 
+  const speakAlert = () => {
+    setIsSpeaking(true);
+    const speechText = isUrdu
+      ? `انتباہ: اہم طبی الرٹ۔ ${alertValue ? alertValue + '۔ ' : ''}آپ کی ریڈنگ محفوظ حد سے باہر ہے۔ برائے مہربانی فوری اپنے ڈاکٹر یا ایمرجنسی سے رابطہ کریں۔`
+      : `Attention: Critical Health Alert. ${alertValue ? alertValue + '. ' : ''}Your recorded reading was critically outside safe limits. Please contact your doctor or emergency services immediately.`;
+
+    Speech.speak(speechText, {
+      language: isUrdu ? 'ur-PK' : 'en-US',
+      rate: 0.88,
+      pitch: 1.0,
+      onDone: () => setIsSpeaking(false),
+      onStopped: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false),
+    });
+  };
+
+  const toggleSpeakAlert = () => {
+    if (isSpeaking) {
+      Speech.stop();
+      setIsSpeaking(false);
+    } else {
+      speakAlert();
+    }
+  };
+
   useEffect(() => {
     // Medical warning vibration pattern on mount
     Vibration.vibrate([0, 250, 150, 250]);
-  }, []);
+
+    if (voiceGuidance) {
+      const timer = setTimeout(() => {
+        speakAlert();
+      }, 350);
+      return () => {
+        clearTimeout(timer);
+        Speech.stop();
+      };
+    }
+
+    return () => {
+      Speech.stop();
+    };
+  }, [voiceGuidance]);
 
   const handleCallDoctor = () => {
     const doctorName = user.doctor || 'Dr. Tariq Mahmood';
@@ -121,6 +162,25 @@ export default function SafetyAlert() {
         <Text variant="bodyLarge" align="center" color="#FFFFFF" style={styles.messageText}>
           {alertMessage}
         </Text>
+
+        {/* Interactive Spoken Voice Guide Button */}
+        <TouchableOpacity 
+          style={[styles.voiceGuideBtn, isSpeaking && styles.voiceGuideBtnActive]}
+          onPress={toggleSpeakAlert}
+          activeOpacity={0.8}
+        >
+          <Feather 
+            name={isSpeaking ? "volume-x" : "volume-2"} 
+            size={22} 
+            color={isSpeaking ? '#EF4444' : '#FFFFFF'} 
+            style={{ marginRight: 8 }} 
+          />
+          <Text style={[styles.voiceGuideBtnText, isSpeaking && { color: '#EF4444' }]}>
+            {isSpeaking 
+              ? (isUrdu ? 'آواز بند کریں (Stop Spoken Guide)' : 'Stop Spoken Guide') 
+              : (isUrdu ? 'آواز سنیں (Listen Spoken Guide)' : 'Listen Spoken Guide')}
+          </Text>
+        </TouchableOpacity>
 
         {/* Primary Action: Call Doctor */}
         <Button 
@@ -228,9 +288,29 @@ const styles = StyleSheet.create({
   messageText: { 
     fontSize: 16, 
     lineHeight: 24, 
-    marginBottom: Spacing.xxl, 
+    marginBottom: Spacing.lg, 
     opacity: 0.95,
     paddingHorizontal: Spacing.sm
+  },
+  voiceGuideBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+    marginBottom: Spacing.lg,
+  },
+  voiceGuideBtnActive: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#FFFFFF',
+  },
+  voiceGuideBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
   actionBtn: { 
     marginBottom: Spacing.md,

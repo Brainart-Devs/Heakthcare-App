@@ -1,20 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Vibration } from 'react-native';
 import { Text, Header, Card, Button } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { router } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme, ThemeMode } from '@/context/ThemeContext';
+import { useUser } from '@/context/UserContext';
+import { useLanguage } from '@/context/LanguageContext';
+import * as Speech from 'expo-speech';
 
 export default function AppPreferencesScreen() {
   const { themeMode, setThemeMode, isDark, theme } = useTheme();
+  const { voiceGuidance, setVoiceGuidance } = useUser();
+  const { isUrdu, t } = useLanguage();
   const [textSize, setTextSize] = useState<'Normal' | 'Large' | 'Extra Large'>('Large');
   const [sugarUnit, setSugarUnit] = useState<'mg/dL' | 'mmol/L'>('mg/dL');
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lbs'>('kg');
   const [highContrast, setHighContrast] = useState(true);
-  const [voiceGuidance, setVoiceGuidance] = useState(false);
   const [vibrateOnTouch, setVibrateOnTouch] = useState(true);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
+  const toggleTestSpokenGuide = async () => {
+    triggerHaptic();
+    if (isSpeaking) {
+      try {
+        await Speech.stop();
+      } catch {}
+      setIsSpeaking(false);
+      return;
+    }
+
+    setIsSpeaking(true);
+    const samplePhrase = isUrdu 
+      ? 'آواز کی رہنمائی فعال ہے۔ یہ ایک آزمائشی آواز ہے۔ اہم طبی الرٹس آپ کو بول کر سنائے جائیں گے۔'
+      : 'Spoken Alert Guidance is active. Critical health warnings and medicine reminders will be read aloud.';
+
+    Speech.speak(samplePhrase, {
+      language: isUrdu ? 'ur-PK' : 'en-US',
+      rate: 0.88,
+      pitch: 1.0,
+      onDone: () => setIsSpeaking(false),
+      onStopped: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false),
+    });
+  };
 
   const textSizes: ('Normal' | 'Large' | 'Extra Large')[] = ['Normal', 'Large', 'Extra Large'];
   const themeModes: { mode: ThemeMode; label: string; icon: string }[] = [
@@ -270,8 +306,12 @@ export default function AppPreferencesScreen() {
         <Card style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={styles.switchRow}>
             <View style={styles.switchLabelCol}>
-              <Text style={[styles.rowTitle, { color: theme.text }]}>Spoken Alert Guidance</Text>
-              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>Read out loud critical alerts and dose names</Text>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>
+                {isUrdu ? 'آواز کی رہنمائی (Spoken Alerts)' : 'Spoken Alert Guidance'}
+              </Text>
+              <Text style={[styles.rowSubtitle, { color: theme.textSecondary }]}>
+                {isUrdu ? 'اہم الرٹس اور ہدایات اونچی آواز میں پڑھ کر سنائیں' : 'Read out loud critical alerts and dose names'}
+              </Text>
             </View>
             <Switch
               value={voiceGuidance}
@@ -279,13 +319,52 @@ export default function AppPreferencesScreen() {
                 triggerHaptic();
                 setVoiceGuidance(val);
                 if (val) {
-                  Alert.alert('Voice Guidance', 'Voice guidance activated. Critical alarms will speak medicine names out loud.');
+                  Speech.speak(isUrdu ? 'آواز کی رہنمائی فعال کر دی گئی۔' : 'Spoken alert guidance activated.', {
+                    language: isUrdu ? 'ur-PK' : 'en-US',
+                    rate: 0.9,
+                  });
+                } else {
+                  Speech.stop();
+                  setIsSpeaking(false);
                 }
               }}
               trackColor={{ false: isDark ? '#334155' : '#E5E7EB', true: isDark ? '#0284C7' : '#BAE6FD' }}
               thumbColor={voiceGuidance ? theme.primary : '#9CA3AF'}
             />
           </View>
+
+          {voiceGuidance && (
+            <View style={styles.testVoiceContainer}>
+              <TouchableOpacity 
+                style={[
+                  styles.testVoiceBtn, 
+                  { 
+                    backgroundColor: isSpeaking ? (isDark ? '#7F1D1D' : '#FEF2F2') : (isDark ? '#082F49' : '#F0F9FF'),
+                    borderColor: isSpeaking ? '#EF4444' : theme.primary 
+                  }
+                ]}
+                onPress={toggleTestSpokenGuide}
+                activeOpacity={0.8}
+              >
+                <Feather 
+                  name={isSpeaking ? "volume-x" : "volume-2"} 
+                  size={20} 
+                  color={isSpeaking ? '#EF4444' : theme.primary} 
+                  style={{ marginRight: 8 }} 
+                />
+                <Text style={[styles.testVoiceBtnText, { color: isSpeaking ? '#EF4444' : theme.primary }]}>
+                  {isSpeaking 
+                    ? (isUrdu ? 'آواز بند کریں (Stop Voice)' : 'Stop Voice Test') 
+                    : (isUrdu ? 'آواز سنیں (Test Spoken Voice)' : 'Test Spoken Alert Voice')}
+                </Text>
+              </TouchableOpacity>
+              <Text style={[styles.testVoiceHint, { color: theme.textSecondary }]}>
+                {isUrdu 
+                  ? 'اس بٹن کو دبا کر تصدیق کریں کہ آپ کے فون کی آواز درست طور پر سنائی دے رہی ہے۔'
+                  : 'Tap to hear a sample and verify that your phone speaker & speech audio are working.'}
+              </Text>
+            </View>
+          )}
 
           <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
@@ -450,6 +529,30 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginVertical: Spacing.md
+  },
+  testVoiceContainer: {
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.xs,
+    paddingTop: Spacing.xs,
+  },
+  testVoiceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.md,
+    borderRadius: 12,
+    borderWidth: 1.5,
+  },
+  testVoiceBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  testVoiceHint: {
+    fontSize: 12,
+    marginTop: 6,
+    textAlign: 'center',
+    lineHeight: 16,
   }
 });
 
